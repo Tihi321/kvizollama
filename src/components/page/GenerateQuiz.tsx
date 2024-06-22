@@ -1,48 +1,42 @@
-import { createEffect, createSignal } from "solid-js";
+import { Component, createEffect, createSignal } from "solid-js";
+import { emit } from "@tauri-apps/api/event";
 import { onMount } from "solid-js";
 import M from "materialize-css";
 
-export const GenerateQuiz = () => {
+interface GenerateQuizProps {
+  setLoading: (isLoading: boolean) => void;
+}
+
+export const GenerateQuiz: Component<GenerateQuizProps> = (props) => {
   let selectElement: HTMLSelectElement;
 
-  const [subjects, setSubjects] = createSignal("");
+  const [topics, setTopics] = createSignal("");
   const [difficulty, setDifficulty] = createSignal("easy");
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
   const [maxPointsPerQuestion, setMaxPointsPerQuestion] = createSignal(10);
-  const [message, setMessage] = createSignal("");
 
   onMount(() => {
     M.FormSelect.init(selectElement);
   });
 
-  createEffect(() => {
-    console.log("message:", message());
-  });
-
   const generateQuiz = (event: any) => {
     event.preventDefault();
-    if (!subjects() || !difficulty() || !questionsPerTopic() || !maxPointsPerQuestion()) {
-      setMessage("Please fill in all fields");
+    if (!topics() || !difficulty() || !questionsPerTopic() || !maxPointsPerQuestion()) {
       return;
     }
 
     const quizConfig = {
-      subjects: subjects()
+      topics: topics()
         .split(",")
         .map((s) => s.trim()),
       difficulty: difficulty(),
-      questionsPerTopic: questionsPerTopic(),
-      maxPointsPerQuestion: maxPointsPerQuestion(),
+      num_questions: questionsPerTopic(),
+      max_points: maxPointsPerQuestion(),
     };
 
     console.log("Quiz Configuration:", quizConfig);
-    setMessage("Quiz configuration generated! Check the console for details.");
-
-    // Reset form
-    setSubjects("");
-    setDifficulty("");
-    setQuestionsPerTopic(4);
-    setMaxPointsPerQuestion(10);
+    emit("generate_quiz_question", quizConfig);
+    props.setLoading(true);
   };
 
   return (
@@ -52,12 +46,12 @@ export const GenerateQuiz = () => {
           <div class="row">
             <div class="input-field col s12">
               <input
-                id="subjects"
+                id="topics"
                 type="text"
-                value={subjects()}
-                onInput={(e) => setSubjects(e.target.value)}
+                value={topics()}
+                onInput={(e) => setTopics(e.target.value)}
               />
-              <label for="subjects">Subjects (comma-separated)</label>
+              <label for="topics">Topics (comma-separated)</label>
             </div>
           </div>
           <div class="row">

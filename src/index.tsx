@@ -1,7 +1,6 @@
 /* @refresh reload */
 import { ThemeProvider } from "solid-styled-components";
 import { render } from "solid-js/web";
-import "materialize-css/dist/css/materialize.min.css";
 
 import "./styles.css";
 import { App } from "./App";

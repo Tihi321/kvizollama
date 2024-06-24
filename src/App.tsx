@@ -8,8 +8,9 @@ import { parseResponseJson } from "./utils/response";
 import { QuizFormData, Topics, QuizInfo } from "./types";
 import { QuizComponent } from "./components/page/QuizComponent";
 import { QuizForm } from "./components/page/QuizForm";
-import { isEmpty, map } from "lodash";
+import { get, isEmpty, map } from "lodash";
 import { isTauri } from "./utils/enviroment";
+import { openFile } from "./hooks/file";
 
 const Container = styled("div")`
   display: flex;
@@ -111,6 +112,9 @@ export const App = () => {
               </Button>
             </Box>
           ))}
+          <Button onClick={() => setShowLoadQuiz(false)} variant="contained" color="primary">
+            Back
+          </Button>
         </Box>
       </Show>
       <Show when={showStart()}>
@@ -158,8 +162,12 @@ export const App = () => {
                 Generate
               </Button>
               <Button
-                onClick={() => {
-                  console.log("import");
+                onClick={async () => {
+                  const selected = (await openFile()) as string;
+                  emit(
+                    "import_quiz",
+                    map(selected, (file) => get(file, ["path"]))
+                  );
                 }}
                 variant="contained"
                 color="primary"

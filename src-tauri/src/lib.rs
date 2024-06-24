@@ -2,7 +2,7 @@ mod database;
 mod llm;
 mod utils;
 
-use database::disk::{add_quiz, get_quizes, remove_quiz};
+use database::disk::{add_quiz, get_quizes, import_quizes, remove_quiz};
 use llm::requests::generate_quiz_questions;
 use serde::Deserialize;
 use tauri::Manager;
@@ -21,11 +21,13 @@ struct QuizQuestionRequest {
 #[tokio::main]
 pub async fn run() {
     let _ = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             let app_handle = app.app_handle();
             let generate_quiz_handle = app_handle.clone();
             let get_quizes_handle = app_handle.clone();
             let remove_quiz_handle = app_handle.clone();
+            let import_quiz_handle = app_handle.clone();
 
             let _ = create_window(&app).unwrap();
 
@@ -87,10 +89,31 @@ pub async fn run() {
 
             app.listen_any("remove_quiz", move |event| {
                 let name = event.payload();
-                remove_quiz(name).expect("Failed to remove quiz");
-                let quizes = get_quizes().expect("Failed to get quizes");
+                let clean_response = name.trim_start_matches('"').trim_end_matches('"');
+                remove_quiz(clean_response).expect("Failed to remove quiz");
+                let quizes = get_quizes().expect("Failed to remove quizes");
                 // Use the app_handle to get the window by its label
                 if let Some(window) = remove_quiz_handle.get_webview_window(WINDOW_LABEL) {
+                    // Now you can interact with the window, e.g., emit an event back to it
+                    window
+                        .emit_to(WINDOW_LABEL, "quizes", quizes)
+                        .expect("Failed to emit event");
+                }
+            });
+
+            app.listen_any("import_quiz", move |event| {
+                let values = event.payload();
+                // Attempt to parse the JSON payload into a Vec<String>
+                match serde_json::from_str::<Vec<String>>(values) {
+                    Ok(paths) => {
+                        println!("Parsed paths: {:?}", paths);
+                        import_quizes(paths).expect("Failed to import quizes");
+                    }
+                    Err(e) => eprintln!("Failed to parse paths: {}", e),
+                }
+                let quizes = get_quizes().expect("Failed to import quizes");
+                // Use the app_handle to get the window by its label
+                if let Some(window) = import_quiz_handle.get_webview_window(WINDOW_LABEL) {
                     // Now you can interact with the window, e.g., emit an event back to it
                     window
                         .emit_to(WINDOW_LABEL, "quizes", quizes)

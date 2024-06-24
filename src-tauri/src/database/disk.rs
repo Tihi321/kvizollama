@@ -30,9 +30,32 @@ pub fn remove_quiz(quiz_name: &str) -> Result<(), std::io::Error> {
     // Check if the file exists and remove it
     if path.exists() {
         fs::remove_file(path)?;
-        println!("Quiz '{}' removed successfully.", quiz_name);
+        println!("Quiz {} removed successfully.", quiz_name);
     } else {
-        println!("Quiz '{}' does not exist.", quiz_name);
+        println!("Quiz {} does not exist.", quiz_name);
+    }
+
+    Ok(())
+}
+
+pub fn import_quizes(paths: Vec<String>) -> Result<(), io::Error> {
+    let quizes_folder_path = Path::new(QUIZES_FOLDER);
+
+    for path_str in paths {
+        let path = Path::new(&path_str);
+        if let Some(file_name) = path.file_name() {
+            let destination_path = quizes_folder_path.join(file_name);
+
+            if !destination_path.exists() {
+                fs::copy(&path, &destination_path)?;
+                println!("File {:?} copied to {:?}", path, destination_path);
+            } else {
+                println!(
+                    "File {:?} already exists in {:?}",
+                    file_name, quizes_folder_path
+                );
+            }
+        }
     }
 
     Ok(())

@@ -1,4 +1,4 @@
-## Ollama Quiz Readme: The Ultimate Web-Based Quiz Generator
+## Ollama Quiz Readme: The Ultimate Quiz Generator
 
 Welcome to the world of interactive education with Ollama Quiz! This guide will take you through every step from installing and setting up your environment, creating quizzes tailored to various topics, configuring difficulty levels, and tracking user performance.
 

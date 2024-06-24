@@ -5,27 +5,43 @@ use std::path::Path;
 use std::result::Result;
 
 use super::constants::QUIZES_FOLDER;
+use super::structs::Topics;
 
-pub fn add_quiz(quiz_name: &str, values: &str) -> Result<(), std::io::Error> {
+pub fn add_quiz(quiz_name: &str, quiz_info: Vec<Topics>) -> io::Result<()> {
+    // Check for invalid characters in quiz_name
+    if quiz_name.contains('/') || quiz_name.contains('\\') {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Invalid quiz name.",
+        ));
+    }
+
     let path = Path::new(QUIZES_FOLDER);
-    // Ensure the "quizes" folder exists
     if !path.exists() {
         fs::create_dir_all(&path)?;
         println!("Folder 'quizes' created successfully.");
     }
 
-    // Construct the path to the quiz file
-    let file_path = path.join(format!("{}.txt", quiz_name));
+    let file_path = path.join(format!("{}.json", quiz_name));
 
-    // Create or overwrite the file with the given name and write the values to it
+    // Check if the quiz file already exists
+    if file_path.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::AlreadyExists,
+            "Quiz already exists.",
+        ));
+    }
+
+    // Serialize quiz_info
+    let serialized = serde_json::to_string(&quiz_info)?;
     let mut file = File::create(file_path)?;
-    file.write_all(values.as_bytes())?;
+    file.write_all(serialized.as_bytes())?;
 
     Ok(())
 }
 
 pub fn remove_quiz(quiz_name: &str) -> Result<(), std::io::Error> {
-    let path = Path::new(QUIZES_FOLDER).join(format!("{}.txt", quiz_name));
+    let path = Path::new(QUIZES_FOLDER).join(format!("{}.json", quiz_name));
 
     // Check if the file exists and remove it
     if path.exists() {
@@ -88,7 +104,7 @@ pub fn get_quizes() -> Result<Vec<(String, String)>, io::Error> {
                 .file_name()
                 .into_string()
                 .unwrap_or_default()
-                .trim_end_matches(".txt")
+                .trim_end_matches(".json")
                 .to_string();
 
             // Add (file_name, content) tuple to the vector

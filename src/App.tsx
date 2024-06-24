@@ -1,6 +1,6 @@
 import { createEffect, createSignal, Show, createMemo, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
-import { CircularProgress, Box, Button } from "@suid/material";
+import { CircularProgress, Box, Button, TextField } from "@suid/material";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { emit, listen } from "@tauri-apps/api/event";
@@ -11,6 +11,7 @@ import { QuizForm } from "./components/page/QuizForm";
 import { get, isEmpty, map } from "lodash";
 import { isTauri } from "./utils/enviroment";
 import { openFile } from "./hooks/file";
+import { getLocalQuizes, removeLocalQuiz, saveLocalQuiz } from "./hooks/local";
 
 const Container = styled("div")`
   display: flex;
@@ -20,18 +21,27 @@ const Container = styled("div")`
 
 export const App = () => {
   const [quizes, setQuizes] = createSignal<QuizInfo[]>([]);
+  const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
   const [quizStarted, setQuizStarted] = createSignal(false);
   const [selectedQuizName, setSelectedQuizName] = createSignal<string>("");
   const [generateQuiz, setGenerateQuiz] = createSignal(false);
   const [showLoadQuiz, setShowLoadQuiz] = createSignal(false);
+  const [showMemoryQuiz, setShowMemoryQuiz] = createSignal(false);
   const [loading, setLoading] = createSignal(true);
   const [isApp, setIsApp] = createSignal(false);
+  const [localName, setLocalName] = createSignal("");
+  const [localQuiz, setLocalQuiz] = createSignal("");
 
   const showStart = createMemo(
-    () => !quizStarted() && !generateQuiz() && !loading() && !showLoadQuiz()
+    () => !quizStarted() && !generateQuiz() && !loading() && !showLoadQuiz() && !showMemoryQuiz()
   );
 
-  const selectedQuiz = createMemo(() => quizes().find((quiz) => quiz.name === selectedQuizName()));
+  const selectedQuiz = createMemo(() => {
+    return (
+      quizes().find((quiz) => quiz.name === selectedQuizName()) ||
+      localQuizes().find((quiz) => quiz.name === selectedQuizName())
+    );
+  });
 
   onMount(async () => {
     const isApp = await isTauri();
@@ -41,6 +51,9 @@ export const App = () => {
     } else {
       setLoading(false);
     }
+
+    const localQuizes = getLocalQuizes();
+    setLocalQuizes(localQuizes);
   });
 
   createEffect(async () => {
@@ -70,6 +83,112 @@ export const App = () => {
   return (
     <Container>
       <Header />
+      <Show when={showMemoryQuiz()}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            flex: 1,
+            gap: 2,
+          }}
+        >
+          <Box>
+            <TextField
+              fullWidth
+              label="Name of the quiz"
+              value={localName()}
+              onChange={(e) => setLocalName(e.target.value)}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Quiz Data"
+              value={localQuiz()}
+              onChange={(e) => setLocalQuiz(e.target.value)}
+              margin="normal"
+            />
+            <Button
+              onClick={() => {
+                const localQuizes = saveLocalQuiz(localName(), localQuiz());
+                setLocalQuizes(localQuizes);
+                setLocalName("");
+                setLocalQuiz("");
+              }}
+              variant="contained"
+              color="primary"
+            >
+              Import
+            </Button>
+          </Box>
+          <Box>
+            {map(localQuizes(), (values: QuizInfo) => (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: 2,
+                }}
+              >
+                {values.name}
+                <Button
+                  onClick={() => {
+                    setSelectedQuizName(values.name);
+                    setShowMemoryQuiz(false);
+                  }}
+                  variant="contained"
+                  color="primary"
+                >
+                  Load
+                </Button>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify(values.data));
+                  }}
+                  variant="contained"
+                  color="primary"
+                >
+                  Export
+                </Button>
+                <Button
+                  onClick={() => {
+                    const localQuizes = removeLocalQuiz(values.name);
+                    setLocalQuizes(localQuizes);
+                  }}
+                  variant="contained"
+                  color="secondary"
+                >
+                  Remove
+                </Button>
+              </Box>
+            ))}
+          </Box>
+          {isApp() && (
+            <Button
+              onClick={async () => {
+                const selected = (await openFile()) as string;
+                if (isEmpty(selected)) {
+                  return;
+                }
+                emit(
+                  "import_quiz",
+                  map(selected, (file) => get(file, ["path"]))
+                );
+              }}
+              variant="contained"
+              color="primary"
+            >
+              Import File
+            </Button>
+          )}
+          <Button onClick={() => setShowMemoryQuiz(false)} variant="contained" color="primary">
+            Back
+          </Button>
+        </Box>
+      </Show>
       <Show when={showLoadQuiz()}>
         <Box
           sx={{
@@ -100,6 +219,15 @@ export const App = () => {
                 color="primary"
               >
                 Load
+              </Button>
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(JSON.stringify(values.data));
+                }}
+                variant="contained"
+                color="primary"
+              >
+                Export
               </Button>
               <Button
                 onClick={() => {
@@ -161,21 +289,11 @@ export const App = () => {
               <Button onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
                 Generate
               </Button>
-              <Button
-                onClick={async () => {
-                  const selected = (await openFile()) as string;
-                  emit(
-                    "import_quiz",
-                    map(selected, (file) => get(file, ["path"]))
-                  );
-                }}
-                variant="contained"
-                color="primary"
-              >
-                Import
-              </Button>
             </>
           )}
+          <Button onClick={() => setShowMemoryQuiz(true)} variant="contained" color="primary">
+            Memory
+          </Button>
         </Box>
       </Show>
       <Show when={loading()}>

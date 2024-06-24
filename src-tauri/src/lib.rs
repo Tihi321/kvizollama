@@ -2,20 +2,14 @@ mod database;
 mod llm;
 mod utils;
 
-use database::disk::{add_quiz, get_quizes, import_quizes, remove_quiz};
+use database::{
+    disk::{add_quiz, get_quizes, import_quizes, remove_quiz},
+    structs::{QuizQuestionRequest, Topics},
+};
 use llm::requests::generate_quiz_questions;
-use serde::Deserialize;
+use serde_json::Error as SerdeError;
 use tauri::Manager;
 use utils::{constants::WINDOW_LABEL, index::create_window};
-
-#[derive(Deserialize)]
-struct QuizQuestionRequest {
-    name: String,
-    topics: Vec<String>,
-    difficulty: String,
-    num_questions: u32,
-    max_points: u32,
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 #[tokio::main]
@@ -52,11 +46,23 @@ pub async fn run() {
                             .await
                             {
                                 Ok(response) => {
-                                    println!("Response generated: {:?}", response);
                                     let clean_response = response
                                         .trim_start_matches("```json")
                                         .trim_end_matches("```");
-                                    add_quiz(&name, &clean_response).expect("Failed to add quiz");
+                                    println!("Attempting to parse JSON: {}", clean_response);
+
+                                    let quiz_info: Result<Vec<Topics>, SerdeError> =
+                                        serde_json::from_str(clean_response);
+                                    match quiz_info {
+                                        Ok(quiz_info) => {
+                                            // Add the serialized JSON string as a quiz
+                                            add_quiz(&name, quiz_info).expect("Failed to add quiz");
+                                        }
+                                        Err(e) => {
+                                            println!("{}", clean_response);
+                                            println!("Failed to parse JSON: {}", e);
+                                        }
+                                    }
                                     let quizes = get_quizes().expect("Failed to add quiz");
                                     // Use the app_handle to get the window by its label
                                     if let Some(window) =

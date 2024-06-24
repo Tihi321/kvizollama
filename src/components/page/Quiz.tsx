@@ -1,18 +1,18 @@
-import { Component, createSignal, Show } from "solid-js";
+import { Component, createSignal, Show, createMemo } from "solid-js";
 import { QuizQuestionResponse, Topic } from "../../types";
-import { QuizQuestion } from "../Quiz/QuizQuestion";
-import { QuizSummary } from "../Quiz/QuizSummary";
+import { QuizQuestion } from "../quiz/QuizQuestion";
+import { QuizSummary } from "../quiz/QuizSummary";
 import { styled } from "solid-styled-components";
 
 interface QuizProps {
   topics: Topic[];
-  onRestart: () => void;
+  onSubmit: () => void;
 }
 
 const QuizContainer = styled("div")`
-  max-width: 800px;
-  margin: 0 auto;
   padding: 20px;
+  flex: 1;
+  display: flex;
 `;
 
 export const Quiz: Component<QuizProps> = (props) => {
@@ -21,8 +21,8 @@ export const Quiz: Component<QuizProps> = (props) => {
   const [responses, setResponses] = createSignal<QuizQuestionResponse[]>([]);
   const [quizComplete, setQuizComplete] = createSignal(false);
 
-  const currentTopic = () => props.topics[currentTopicIndex()];
-  const currentQuestion = () => currentTopic().questions[currentQuestionIndex()];
+  const currentTopic = createMemo(() => props.topics[currentTopicIndex()]);
+  const currentQuestion = createMemo(() => currentTopic().questions[currentQuestionIndex()]);
 
   const handleNext = (response?: QuizQuestionResponse) => {
     if (response) {
@@ -49,7 +49,7 @@ export const Quiz: Component<QuizProps> = (props) => {
           <QuizSummary
             responses={responses()}
             totalPoints={totalPoints()}
-            onRestart={props.onRestart}
+            onSubmit={props.onSubmit}
           />
         }
       >
@@ -57,6 +57,7 @@ export const Quiz: Component<QuizProps> = (props) => {
           <QuizQuestion
             topic={currentTopic().topic}
             difficulty={currentTopic().difficulty}
+            title={currentQuestion().question}
             question={currentQuestion()}
             onNext={handleNext}
           />

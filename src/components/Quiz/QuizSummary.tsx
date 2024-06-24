@@ -1,20 +1,26 @@
 import { Component, For } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Typography, Button, Card, CardContent } from "@suid/material";
+import { Typography, Button } from "@suid/material";
 import { QuizQuestionResponse } from "../../types";
 
 interface QuizSummaryProps {
   responses: QuizQuestionResponse[];
   totalPoints: number;
-  onRestart: () => void;
+  onSubmit: () => void;
 }
 
-const SummaryCard = styled(Card)`
-  margin-top: 20px;
+const SummaryCard = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
-const SummaryContent = styled(CardContent)`
-  padding: 24px;
+const Header = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `;
 
 const SummaryTable = styled("table")`
@@ -37,41 +43,41 @@ const SummaryTableHeaderCell = styled("th")`
 export const QuizSummary: Component<QuizSummaryProps> = (props) => {
   return (
     <SummaryCard>
-      <SummaryContent>
+      <Header>
         <Typography variant="h4" gutterBottom>
           Quiz Summary
         </Typography>
         <Typography variant="h6" gutterBottom>
           Total Points: {props.totalPoints}
         </Typography>
-        <SummaryTable>
-          <thead>
-            <tr>
-              <SummaryTableHeaderCell>Topic</SummaryTableHeaderCell>
-              <SummaryTableHeaderCell>Question</SummaryTableHeaderCell>
-              <SummaryTableHeaderCell>Your Answer</SummaryTableHeaderCell>
-              <SummaryTableHeaderCell>Correct Answer</SummaryTableHeaderCell>
-              <SummaryTableHeaderCell>Points</SummaryTableHeaderCell>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={props.responses}>
-              {(response) => (
-                <tr>
-                  <SummaryTableCell>{response.topic}</SummaryTableCell>
-                  <SummaryTableCell>{response.question}</SummaryTableCell>
-                  <SummaryTableCell>{response.userAnswer}</SummaryTableCell>
-                  <SummaryTableCell>{response.correctAnswer}</SummaryTableCell>
-                  <SummaryTableCell>{response.points}</SummaryTableCell>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </SummaryTable>
-        <Button onClick={props.onRestart} variant="contained" color="primary">
-          Retry Quiz
+        <Button onClick={props.onSubmit} variant="contained" color="primary">
+          Finish
         </Button>
-      </SummaryContent>
+      </Header>
+      <SummaryTable>
+        <thead>
+          <tr>
+            <SummaryTableHeaderCell>Topic</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>Question</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>Your Answer</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>Correct Answer</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>Points</SummaryTableHeaderCell>
+          </tr>
+        </thead>
+        <tbody>
+          <For each={props.responses}>
+            {(response) => (
+              <tr>
+                <SummaryTableCell>{response.topic}</SummaryTableCell>
+                <SummaryTableCell>{response.question}</SummaryTableCell>
+                <SummaryTableCell>{response.userAnswer}</SummaryTableCell>
+                <SummaryTableCell>{response.correctAnswer}</SummaryTableCell>
+                <SummaryTableCell>{response.points}</SummaryTableCell>
+              </tr>
+            )}
+          </For>
+        </tbody>
+      </SummaryTable>
     </SummaryCard>
   );
 };

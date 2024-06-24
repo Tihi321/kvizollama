@@ -22,7 +22,7 @@ pub fn create_window(app: &App) -> Result<WebviewWindow, tauri::Error> {
         .closable(true)
         .resizable(true)
         .decorations(true)
-        .inner_size(980.0, 600.0)
+        .inner_size(960.0, 960.0)
         .focused(true)
         .build()
 }

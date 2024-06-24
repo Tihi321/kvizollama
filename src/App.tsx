@@ -1,5 +1,6 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, Show, createMemo } from "solid-js";
 import { styled } from "solid-styled-components";
+import { CircularProgress, Box, Button } from "@suid/material";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { emit, listen } from "@tauri-apps/api/event";
@@ -7,6 +8,7 @@ import { cleanString, parseResponseJson } from "./utils/response";
 import { QuizFormData, Topic } from "./types";
 import { Quiz } from "./components/page/Quiz";
 import { QuizForm } from "./components/page/QuizForm";
+import { isEmpty } from "lodash";
 
 const Container = styled("div")`
   display: flex;
@@ -14,13 +16,13 @@ const Container = styled("div")`
   min-height: 100vh;
 `;
 
-const quizData = JSON.parse(
-  '[{"topic":"Mathematics","difficulty":"Easy","questions":[{"question":"What is 2 + 2?","answers":[{"answer":"4","correct":true,"points":10},{"answer":"22","correct":false,"points":5},{"answer":"3","correct":false,"points":3},{"answer":"5","correct":false,"points":1}],"hint":"It\'s the first even number.","explanation":"2 + 2 equals 4."}]},{"topic":"Literature","difficulty":"Hard","questions":[{"question":"Who wrote \'To Kill a Mockingbird\'?","answers":[{"answer":"Harper Lee","correct":true,"points":10},{"answer":"Mark Twain","correct":false,"points":5},{"answer":"Ernest Hemingway","correct":false,"points":3},{"answer":"John Steinbeck","correct":false,"points":1}],"hint":"The author is not a man.","explanation":"\'To Kill a Mockingbird\' was written by Harper Lee."}]}]'
-);
-
 export const App = () => {
   const [topics, setTopics] = createSignal<Topic[]>([]);
   const [quizStarted, setQuizStarted] = createSignal(false);
+  const [generateQuiz, setGenerateQuiz] = createSignal(false);
+  const [loading, setLoading] = createSignal(false);
+
+  const showStart = createMemo(() => !quizStarted() && !generateQuiz() && !loading());
 
   createEffect(async () => {
     const unlisten = await listen("generate_quiz_question_response", (event: any) => {
@@ -31,31 +33,63 @@ export const App = () => {
       console.log(responseQuestions);
 
       setTopics(responseQuestions);
-      setQuizStarted(true);
+      setLoading(false);
     });
 
     return () => unlisten();
   });
 
-  const handleStart = async (formData: QuizFormData) => {
-    console.log("Quiz Form Data:", formData);
-    // emit("generate_quiz_question", formData);
-    setTopics(quizData);
-    setQuizStarted(true);
+  const handleGenerateQuiz = async (formData: QuizFormData) => {
+    emit("generate_quiz_question", formData);
+    setGenerateQuiz(false);
+    setLoading(true);
   };
 
-  const handleRestart = () => {
-    setQuizStarted(false);
-    setTopics([]);
-  };
   return (
     <Container>
       <Header />
-      {!quizStarted() ? (
-        <QuizForm onSubmit={handleStart} />
-      ) : (
-        <Quiz topics={topics()} onRestart={handleRestart} />
-      )}
+      <Show when={showStart()}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            gap: 2,
+            flex: 1,
+          }}
+        >
+          <Button
+            onClick={() => setQuizStarted(true)}
+            variant="contained"
+            color="primary"
+            disabled={isEmpty(topics())}
+          >
+            Start
+          </Button>
+          <Button onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
+            Generate
+          </Button>
+        </Box>
+      </Show>
+      <Show when={loading()}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flex: 1,
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      </Show>
+      <Show when={quizStarted() && !isEmpty(topics())}>
+        <Quiz topics={topics()} onSubmit={() => setQuizStarted(false)} />
+      </Show>
+      <Show when={generateQuiz()}>
+        <QuizForm onSubmit={handleGenerateQuiz} onBack={() => setGenerateQuiz(false)} />
+      </Show>
       <Footer />
     </Container>
   );

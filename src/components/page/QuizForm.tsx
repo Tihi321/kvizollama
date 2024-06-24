@@ -1,6 +1,6 @@
 import { Component, createSignal } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Button, TextField, Select, MenuItem, FormControl, InputLabel } from "@suid/material";
+import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Box } from "@suid/material";
 import { QuizFormData } from "../../types";
 
 const FormContainer = styled("div")`
@@ -8,15 +8,16 @@ const FormContainer = styled("div")`
   flex-direction: column;
   gap: 20px;
   max-width: 600px;
-  margin: 0 auto;
+  margin: auto;
   padding: 20px;
 `;
 
 interface QuizFormProps {
   onSubmit: (formData: QuizFormData) => void;
+  onBack: () => void;
 }
 
-export const QuizForm: Component<QuizFormProps> = ({ onSubmit }) => {
+export const QuizForm: Component<QuizFormProps> = ({ onSubmit, onBack }) => {
   const [topics, setTopics] = createSignal("");
   const [difficulty, setDifficulty] = createSignal("easy");
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
@@ -74,9 +75,23 @@ export const QuizForm: Component<QuizFormProps> = ({ onSubmit }) => {
           onChange={(e) => setMaxPointsPerQuestion(parseInt(e.target.value))}
           margin="normal"
         />
-        <Button type="submit" variant="contained" color="primary" fullWidth>
-          Generate Quiz
-        </Button>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: "row",
+            gap: 2,
+            flex: 1,
+          }}
+        >
+          <Button type="submit" variant="contained" color="primary">
+            Generate Quiz
+          </Button>
+          <Button variant="contained" color="primary" onClick={onBack}>
+            Cancel
+          </Button>
+        </Box>
       </form>
     </FormContainer>
   );

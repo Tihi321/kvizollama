@@ -1,14 +1,20 @@
-import { Component, createSignal, For, createMemo } from "solid-js";
+import { Component, createSignal, For, createMemo, createEffect } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Button, Card, CardContent, Typography } from "@suid/material";
+import { Button, Typography } from "@suid/material";
 import { Question, QuizQuestionResponse } from "../../types";
 
-const QuestionCard = styled(Card)`
-  margin-top: 20px;
+const QuestionCard = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
-const QuestionContent = styled(CardContent)`
-  padding: 24px;
+const Header = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `;
 
 const TopicTitle = styled(Typography)`
@@ -40,6 +46,14 @@ const ButtonContainer = styled("div")`
   justify-content: space-between;
 `;
 
+const ResultContainer = styled("div")`
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+`;
+
 const ResultText = styled(Typography)<{ correct: boolean }>`
   color: ${(props) => (props.correct ? "#4caf50" : "#f44336")};
   font-weight: bold;
@@ -49,6 +63,7 @@ const ResultText = styled(Typography)<{ correct: boolean }>`
 interface QuizQuestionProps {
   topic: string;
   difficulty: string;
+  title: string;
   question: Question;
   onNext: (response: QuizQuestionResponse) => void;
 }
@@ -57,6 +72,16 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
   const [selectedAnswerIndex, setSelectedAnswerIndex] = createSignal<number | null>(null);
   const [showHint, setShowHint] = createSignal(false);
   const [showResult, setShowResult] = createSignal(false);
+  const [questionTitle, setQuestionTitle] = createSignal("");
+  const [questionTopic, setQuestionTopc] = createSignal("");
+
+  createEffect(() => {
+    setSelectedAnswerIndex(null);
+    setShowHint(false);
+    setShowResult(false);
+    setQuestionTitle(props.title);
+    setQuestionTopc(props.topic);
+  });
 
   const selectedAnswer = createMemo(() => props.question.answers[selectedAnswerIndex()!]);
 
@@ -67,12 +92,12 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
 
   return (
     <QuestionCard>
-      <QuestionContent>
+      <Header>
         <TopicTitle variant="h5">
-          {props.topic} ({props.difficulty})
+          {questionTopic()} ({props.difficulty})
         </TopicTitle>
         <Typography variant="h6" gutterBottom>
-          {props.question.question}
+          {questionTitle()}
         </Typography>
 
         {showHint() && (
@@ -80,73 +105,71 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
             <Typography>{props.question.hint}</Typography>
           </HintBox>
         )}
+      </Header>
 
-        {!showResult() && (
-          <>
-            <AnswerGrid>
-              <For each={props.question.answers}>
-                {(answer, index) => (
-                  <AnswerButton
-                    variant={selectedAnswerIndex() === index() ? "contained" : "outlined"}
-                    color="primary"
-                    onClick={() => setSelectedAnswerIndex(index())}
-                    disabled={showResult()}
-                  >
-                    {answer.answer}
-                  </AnswerButton>
-                )}
-              </For>
-            </AnswerGrid>
+      {!showResult() && (
+        <div>
+          <AnswerGrid>
+            <For each={props.question.answers}>
+              {(answer, index) => (
+                <AnswerButton
+                  variant={selectedAnswerIndex() === index() ? "contained" : "outlined"}
+                  color="primary"
+                  onClick={() => setSelectedAnswerIndex(index())}
+                  disabled={showResult()}
+                >
+                  {answer.answer}
+                </AnswerButton>
+              )}
+            </For>
+          </AnswerGrid>
 
-            <ButtonContainer>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setShowHint(true)}
-                disabled={showHint() || showResult()}
-              >
-                Show Hint
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                disabled={selectedAnswerIndex() === null || showResult()}
-              >
-                Submit
-              </Button>
-            </ButtonContainer>
-          </>
-        )}
-        {showResult() && (
-          <>
-            <ResultText correct={selectedAnswer().correct} variant="h6">
-              {selectedAnswer().correct ? "Correct!" : "Incorrect. Try again!"}
-            </ResultText>
-            <Typography>{props.question.explanation}</Typography>
+          <ButtonContainer>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setShowHint(true)}
+              disabled={showHint() || showResult()}
+            >
+              Show Hint
+            </Button>
             <Button
               variant="contained"
               color="primary"
-              onClick={() => {
-                props.onNext({
-                  topic: props.topic,
-                  question: props.question.question,
-                  userAnswer: selectedAnswer().answer,
-                  correctAnswer: props.question.answers.find((a) => a.correct)!.answer,
-                  points: selectedAnswer().points,
-                  correct: selectedAnswer().correct,
-                });
-                setSelectedAnswerIndex(null);
-                setShowHint(false);
-                setShowResult(false);
-              }}
-              style={{ marginTop: "16px", float: "right" }}
+              onClick={handleSubmit}
+              disabled={selectedAnswerIndex() === null || showResult()}
             >
-              Next
+              Submit
             </Button>
-          </>
-        )}
-      </QuestionContent>
+          </ButtonContainer>
+        </div>
+      )}
+      {showResult() && (
+        <ResultContainer>
+          <ResultText correct={selectedAnswer().correct} variant="h6">
+            {selectedAnswer().correct ? "Correct!" : "Incorrect. Try again!"}
+          </ResultText>
+          <Typography>{props.question.explanation}</Typography>
+          <Button
+            component="button"
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              props.onNext({
+                topic: props.topic,
+                question: props.question.question,
+                userAnswer: selectedAnswer().answer,
+                correctAnswer: props.question.answers.find((a) => a.correct)!.answer,
+                points: selectedAnswer().points,
+                correct: selectedAnswer().correct,
+              });
+            }}
+            style={{ "margin-top": "16px" }}
+          >
+            Next
+          </Button>
+        </ResultContainer>
+      )}
     </QuestionCard>
   );
 };

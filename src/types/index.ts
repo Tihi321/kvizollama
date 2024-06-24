@@ -11,11 +11,19 @@ export type Question = {
   explanation: string;
 };
 
-export type Topic = {
+export type Topics = {
   topic: string;
   difficulty: string;
   questions: Question[];
 };
+
+export type QuizInfo = {
+  name: string;
+  difficulty: string;
+  data: Topics[];
+};
+
+export type QuizesResponse = Array<[string, string]>;
 
 export type QuizQuestionResponse = {
   topic: string;
@@ -27,6 +35,7 @@ export type QuizQuestionResponse = {
 };
 
 export interface QuizFormData {
+  name: string;
   topics: string[];
   difficulty: string;
   num_questions: number;

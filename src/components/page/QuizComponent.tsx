@@ -1,11 +1,11 @@
 import { Component, createSignal, Show, createMemo } from "solid-js";
-import { QuizQuestionResponse, Topic } from "../../types";
+import { QuizQuestionResponse, Topics } from "../../types";
 import { QuizQuestion } from "../quiz/QuizQuestion";
 import { QuizSummary } from "../quiz/QuizSummary";
 import { styled } from "solid-styled-components";
 
 interface QuizProps {
-  topics: Topic[];
+  quiz: Topics[];
   onSubmit: () => void;
 }
 
@@ -15,24 +15,24 @@ const QuizContainer = styled("div")`
   display: flex;
 `;
 
-export const Quiz: Component<QuizProps> = (props) => {
-  const [currentTopicIndex, setCurrentTopicIndex] = createSignal(0);
+export const QuizComponent: Component<QuizProps> = (props) => {
+  const [currentQuizIndex, setCurrentQuizIndex] = createSignal(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = createSignal(0);
   const [responses, setResponses] = createSignal<QuizQuestionResponse[]>([]);
   const [quizComplete, setQuizComplete] = createSignal(false);
 
-  const currentTopic = createMemo(() => props.topics[currentTopicIndex()]);
-  const currentQuestion = createMemo(() => currentTopic().questions[currentQuestionIndex()]);
+  const currentQuiz = createMemo(() => props.quiz[currentQuizIndex()]);
+  const currentQuestion = createMemo(() => currentQuiz().questions[currentQuestionIndex()]);
 
   const handleNext = (response?: QuizQuestionResponse) => {
     if (response) {
       setResponses([...responses(), response]);
     }
 
-    if (currentQuestionIndex() < currentTopic().questions.length - 1) {
+    if (currentQuestionIndex() < currentQuiz().questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex() + 1);
-    } else if (currentTopicIndex() < props.topics.length - 1) {
-      setCurrentTopicIndex(currentTopicIndex() + 1);
+    } else if (currentQuizIndex() < props.quiz.length - 1) {
+      setCurrentQuizIndex(currentQuizIndex() + 1);
       setCurrentQuestionIndex(0);
     } else {
       setQuizComplete(true);
@@ -53,10 +53,10 @@ export const Quiz: Component<QuizProps> = (props) => {
           />
         }
       >
-        <Show when={currentTopic() && currentQuestion()}>
+        <Show when={currentQuiz() && currentQuestion()}>
           <QuizQuestion
-            topic={currentTopic().topic}
-            difficulty={currentTopic().difficulty}
+            topic={currentQuiz().topic}
+            difficulty={currentQuiz().difficulty}
             title={currentQuestion().question}
             question={currentQuestion()}
             onNext={handleNext}

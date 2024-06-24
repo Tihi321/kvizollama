@@ -18,6 +18,7 @@ interface QuizFormProps {
 }
 
 export const QuizForm: Component<QuizFormProps> = ({ onSubmit, onBack }) => {
+  const [name, setName] = createSignal("");
   const [topics, setTopics] = createSignal("");
   const [difficulty, setDifficulty] = createSignal("easy");
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
@@ -25,11 +26,12 @@ export const QuizForm: Component<QuizFormProps> = ({ onSubmit, onBack }) => {
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
-    if (!topics() || !difficulty() || !questionsPerTopic() || !maxPointsPerQuestion()) {
+    if (!name() || !topics() || !difficulty() || !questionsPerTopic() || !maxPointsPerQuestion()) {
       return;
     }
 
     const formData: QuizFormData = {
+      name: name(),
       topics: topics()
         .split(",")
         .map((s) => s.trim()),
@@ -44,6 +46,13 @@ export const QuizForm: Component<QuizFormProps> = ({ onSubmit, onBack }) => {
   return (
     <FormContainer>
       <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          label="Name of the quiz"
+          value={name()}
+          onChange={(e) => setName(e.target.value)}
+          margin="normal"
+        />
         <TextField
           fullWidth
           label="Topics (comma-separated)"

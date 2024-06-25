@@ -1,17 +1,23 @@
+// @ts-ignore
+import systemPrompt from "../assets/system_prompt.txt?raw";
+
 import { createEffect, createSignal, Show, createMemo, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
-import { CircularProgress, Box, Button, TextField } from "@suid/material";
+import { CircularProgress, Box, Button } from "@suid/material";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { emit, listen } from "@tauri-apps/api/event";
-import { parseResponseJson } from "./utils/response";
-import { QuizFormData, Topics, QuizInfo } from "./types";
+import { QuizFormData, Topics, QuizInfo, QuizFormOptions } from "./types";
 import { QuizComponent } from "./components/page/QuizComponent";
 import { QuizForm } from "./components/page/QuizForm";
-import { get, isEmpty, map } from "lodash";
+import { get, isEmpty } from "lodash";
 import { isTauri } from "./utils/enviroment";
-import { openFile } from "./hooks/file";
-import { getLocalQuizes, removeLocalQuiz, saveLocalQuiz } from "./hooks/local";
+import { QuizLoad } from "./components/page/QuizLoad";
+import { parseJsonFromString, parseResponseJson } from "./utils/response";
+import { QuizSave } from "./components/page/QuizSave";
+import { QuizSettings } from "./components/page/QuizSettings";
+import { fetchPerplexityApi } from "./utils/llms";
+import { saveLocalQuiz } from "./hooks/local";
 
 const Container = styled("div")`
   display: flex;
@@ -19,29 +25,30 @@ const Container = styled("div")`
   min-height: 100vh;
 `;
 
+const MenuButton = styled(Button)`
+  width: 300px;
+`;
+
 export const App = () => {
   const [quizes, setQuizes] = createSignal<QuizInfo[]>([]);
-  const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
   const [quizStarted, setQuizStarted] = createSignal(false);
-  const [selectedQuizName, setSelectedQuizName] = createSignal<string>("");
+  const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
   const [generateQuiz, setGenerateQuiz] = createSignal(false);
   const [showLoadQuiz, setShowLoadQuiz] = createSignal(false);
-  const [showMemoryQuiz, setShowMemoryQuiz] = createSignal(false);
+  const [showSaveQuiz, setShowSaveQuiz] = createSignal(false);
+  const [showSettingsQuiz, setShowSettingsQuiz] = createSignal(false);
   const [loading, setLoading] = createSignal(true);
   const [isApp, setIsApp] = createSignal(false);
-  const [localName, setLocalName] = createSignal("");
-  const [localQuiz, setLocalQuiz] = createSignal("");
 
   const showStart = createMemo(
-    () => !quizStarted() && !generateQuiz() && !loading() && !showLoadQuiz() && !showMemoryQuiz()
+    () =>
+      !quizStarted() &&
+      !generateQuiz() &&
+      !loading() &&
+      !showLoadQuiz() &&
+      !showSaveQuiz() &&
+      !showSettingsQuiz()
   );
-
-  const selectedQuiz = createMemo(() => {
-    return (
-      quizes().find((quiz) => quiz.name === selectedQuizName()) ||
-      localQuizes().find((quiz) => quiz.name === selectedQuizName())
-    );
-  });
 
   onMount(async () => {
     const isApp = await isTauri();
@@ -51,15 +58,11 @@ export const App = () => {
     } else {
       setLoading(false);
     }
-
-    const localQuizes = getLocalQuizes();
-    setLocalQuizes(localQuizes);
   });
 
   createEffect(async () => {
+    if (!isApp()) return;
     const unlisten = await listen("quizes", (event: any) => {
-      console.log("generate_quiz_question_response:", event.payload);
-
       const responseQuizes = parseResponseJson(event.payload);
 
       setQuizes(responseQuizes);
@@ -69,182 +72,36 @@ export const App = () => {
     return () => unlisten();
   });
 
-  const handleRemoveQuiz = async (name: string) => {
-    emit("remove_quiz", name);
-    setLoading(true);
-  };
-
-  const handleGenerateQuiz = async (formData: QuizFormData) => {
-    emit("generate_quiz", formData);
+  const handleGenerateQuiz = async (formData: QuizFormData, options: QuizFormOptions) => {
     setGenerateQuiz(false);
     setLoading(true);
+
+    if (options.type === "perplexity") {
+      fetchPerplexityApi(options.api || "", systemPrompt, formData).then((response) => {
+        const jsonRespnse = parseJsonFromString(
+          get(response, ["choices", 0, "message", "content"], "")
+        );
+        if (isApp()) {
+          emit("save_quiz", { name: options.name, data: jsonRespnse });
+          setLoading(false);
+        } else {
+          saveLocalQuiz(options.name, JSON.stringify(jsonRespnse));
+          setLoading(false);
+        }
+      });
+      return;
+    }
+
+    if (options.type === "ollama" && isApp()) {
+      emit("generate_quiz", { formData, name: options.name, model: options.model });
+      setGenerateQuiz(false);
+      return;
+    }
   };
 
   return (
     <Container>
       <Header />
-      <Show when={showMemoryQuiz()}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-            flex: 1,
-            gap: 2,
-          }}
-        >
-          <Box>
-            <TextField
-              fullWidth
-              label="Name of the quiz"
-              value={localName()}
-              onChange={(e) => setLocalName(e.target.value)}
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Quiz Data"
-              value={localQuiz()}
-              onChange={(e) => setLocalQuiz(e.target.value)}
-              margin="normal"
-            />
-            <Button
-              onClick={() => {
-                const localQuizes = saveLocalQuiz(localName(), localQuiz());
-                setLocalQuizes(localQuizes);
-                setLocalName("");
-                setLocalQuiz("");
-              }}
-              variant="contained"
-              color="primary"
-            >
-              Import
-            </Button>
-          </Box>
-          <Box>
-            {map(localQuizes(), (values: QuizInfo) => (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  gap: 2,
-                }}
-              >
-                {values.name}
-                <Button
-                  onClick={() => {
-                    setSelectedQuizName(values.name);
-                    setShowMemoryQuiz(false);
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Load
-                </Button>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(JSON.stringify(values.data));
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Export
-                </Button>
-                <Button
-                  onClick={() => {
-                    const localQuizes = removeLocalQuiz(values.name);
-                    setLocalQuizes(localQuizes);
-                  }}
-                  variant="contained"
-                  color="secondary"
-                >
-                  Remove
-                </Button>
-              </Box>
-            ))}
-          </Box>
-          {isApp() && (
-            <Button
-              onClick={async () => {
-                const selected = (await openFile()) as string;
-                if (isEmpty(selected)) {
-                  return;
-                }
-                emit(
-                  "import_quiz",
-                  map(selected, (file) => get(file, ["path"]))
-                );
-              }}
-              variant="contained"
-              color="primary"
-            >
-              Import File
-            </Button>
-          )}
-          <Button onClick={() => setShowMemoryQuiz(false)} variant="contained" color="primary">
-            Back
-          </Button>
-        </Box>
-      </Show>
-      <Show when={showLoadQuiz()}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-            flex: 1,
-          }}
-        >
-          {map(quizes(), (values: QuizInfo) => (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "row",
-                gap: 2,
-              }}
-            >
-              {values.name}
-              <Button
-                onClick={() => {
-                  setSelectedQuizName(values.name);
-                  setShowLoadQuiz(false);
-                }}
-                variant="contained"
-                color="primary"
-              >
-                Load
-              </Button>
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(values.data));
-                }}
-                variant="contained"
-                color="primary"
-              >
-                Export
-              </Button>
-              <Button
-                onClick={() => {
-                  handleRemoveQuiz(values.name);
-                }}
-                variant="contained"
-                color="secondary"
-              >
-                Remove
-              </Button>
-            </Box>
-          ))}
-          <Button onClick={() => setShowLoadQuiz(false)} variant="contained" color="primary">
-            Back
-          </Button>
-        </Box>
-      </Show>
       <Show when={showStart()}>
         <Box
           sx={{
@@ -268,32 +125,26 @@ export const App = () => {
               {selectedQuiz()?.name} - {selectedQuiz()?.difficulty}
             </Box>
           )}
-          <Button
+          <MenuButton
             onClick={() => setQuizStarted(true)}
             variant="contained"
             color="primary"
             disabled={isEmpty(selectedQuiz())}
           >
             Start
-          </Button>
-          {isApp() && (
-            <>
-              <Button
-                disabled={isEmpty(quizes())}
-                onClick={() => setShowLoadQuiz(true)}
-                variant="contained"
-                color="primary"
-              >
-                Load
-              </Button>
-              <Button onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
-                Generate
-              </Button>
-            </>
-          )}
-          <Button onClick={() => setShowMemoryQuiz(true)} variant="contained" color="primary">
-            Memory
-          </Button>
+          </MenuButton>
+          <MenuButton onClick={() => setShowSettingsQuiz(true)} variant="contained" color="primary">
+            Settings
+          </MenuButton>
+          <MenuButton onClick={() => setShowLoadQuiz(true)} variant="contained" color="primary">
+            Load quiz
+          </MenuButton>
+          <MenuButton onClick={() => setShowSaveQuiz(true)} variant="contained" color="primary">
+            Save quiz
+          </MenuButton>
+          <MenuButton onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
+            Generate new quiz
+          </MenuButton>
         </Box>
       </Show>
       <Show when={loading()}>
@@ -312,10 +163,32 @@ export const App = () => {
         <QuizComponent
           quiz={selectedQuiz()?.data as Topics[]}
           onSubmit={() => setQuizStarted(false)}
+          onCancel={() => setQuizStarted(false)}
         />
       </Show>
+      <Show when={showLoadQuiz()}>
+        <QuizLoad
+          isApp={isApp()}
+          quizes={quizes()}
+          onBack={() => setShowLoadQuiz(false)}
+          onLoad={(quiz) => {
+            setSelectedQuiz(quiz);
+            setShowLoadQuiz(false);
+          }}
+        />
+      </Show>
+      <Show when={showSaveQuiz()}>
+        <QuizSave isApp={isApp()} onBack={() => setShowSaveQuiz(false)} />
+      </Show>
+      <Show when={showSettingsQuiz()}>
+        <QuizSettings onBack={() => setShowSettingsQuiz(false)} />
+      </Show>
       <Show when={generateQuiz()}>
-        <QuizForm onSubmit={handleGenerateQuiz} onBack={() => setGenerateQuiz(false)} />
+        <QuizForm
+          isApp={isApp()}
+          onGenerate={handleGenerateQuiz}
+          onBack={() => setGenerateQuiz(false)}
+        />
       </Show>
       <Footer />
     </Container>

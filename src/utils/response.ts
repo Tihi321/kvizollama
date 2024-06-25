@@ -18,3 +18,17 @@ export const parseResponseJson = (response: QuizesResponse): QuizInfo[] | [] => 
     return [];
   }
 };
+
+// Function to parse JSON string that has artifacts
+export const parseJsonFromString = (response: string): QuizInfo[] | [] => {
+  const startIndex = response.indexOf("[");
+  const endIndex = response.lastIndexOf("]") + 1; // +1 to include the bracket in the substring
+  const jsonString = response.substring(startIndex, endIndex);
+  try {
+    const jsonData = JSON.parse(jsonString);
+    return jsonData;
+  } catch (error) {
+    console.error("Error parsing JSON", error);
+    return [];
+  }
+};

@@ -35,9 +35,15 @@ export type QuizQuestionResponse = {
 };
 
 export interface QuizFormData {
-  name: string;
   topics: string[];
   difficulty: string;
   num_questions: number;
   max_points: number;
+}
+
+export interface QuizFormOptions {
+  model?: string;
+  api?: string;
+  type?: string;
+  name: string;
 }

@@ -3,25 +3,35 @@ import { QuizQuestionResponse, Topics } from "../../types";
 import { QuizQuestion } from "../quiz/QuizQuestion";
 import { QuizSummary } from "../quiz/QuizSummary";
 import { styled } from "solid-styled-components";
+import { Button } from "@suid/material";
 
 interface QuizProps {
   quiz: Topics[];
   onSubmit: () => void;
+  onCancel: () => void;
 }
 
 const QuizContainer = styled("div")`
+  position: relative;
   padding: 20px;
   flex: 1;
   display: flex;
 `;
 
-export const QuizComponent: Component<QuizProps> = (props) => {
+const ButtonBack = styled(Button)`
+  position: absolute !important;
+  top: 20px;
+  left: 20px;
+  width: 100px;
+`;
+
+export const QuizComponent: Component<QuizProps> = ({ onCancel, onSubmit, quiz }) => {
   const [currentQuizIndex, setCurrentQuizIndex] = createSignal(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = createSignal(0);
   const [responses, setResponses] = createSignal<QuizQuestionResponse[]>([]);
   const [quizComplete, setQuizComplete] = createSignal(false);
 
-  const currentQuiz = createMemo(() => props.quiz[currentQuizIndex()]);
+  const currentQuiz = createMemo(() => quiz[currentQuizIndex()]);
   const currentQuestion = createMemo(() => currentQuiz().questions[currentQuestionIndex()]);
 
   const handleNext = (response?: QuizQuestionResponse) => {
@@ -31,7 +41,7 @@ export const QuizComponent: Component<QuizProps> = (props) => {
 
     if (currentQuestionIndex() < currentQuiz().questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex() + 1);
-    } else if (currentQuizIndex() < props.quiz.length - 1) {
+    } else if (currentQuizIndex() < quiz.length - 1) {
       setCurrentQuizIndex(currentQuizIndex() + 1);
       setCurrentQuestionIndex(0);
     } else {
@@ -46,11 +56,7 @@ export const QuizComponent: Component<QuizProps> = (props) => {
       <Show
         when={!quizComplete()}
         fallback={
-          <QuizSummary
-            responses={responses()}
-            totalPoints={totalPoints()}
-            onSubmit={props.onSubmit}
-          />
+          <QuizSummary responses={responses()} totalPoints={totalPoints()} onSubmit={onSubmit} />
         }
       >
         <Show when={currentQuiz() && currentQuestion()}>
@@ -63,6 +69,9 @@ export const QuizComponent: Component<QuizProps> = (props) => {
           />
         </Show>
       </Show>
+      <ButtonBack onClick={onCancel} variant="contained" color="primary">
+        Back
+      </ButtonBack>
     </QuizContainer>
   );
 };

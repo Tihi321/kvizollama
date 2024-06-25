@@ -31,9 +31,16 @@ pub struct QuizInfo {
 
 #[derive(Deserialize)]
 pub struct QuizQuestionRequest {
+    pub model: String,
     pub name: String,
     pub topics: Vec<String>,
     pub difficulty: String,
     pub num_questions: u32,
     pub max_points: u32,
+}
+
+#[derive(Deserialize)]
+pub struct QuizQuestionSaveRequest {
+    pub name: String,
+    pub data: Vec<Topics>,
 }

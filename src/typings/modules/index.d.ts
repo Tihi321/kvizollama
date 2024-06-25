@@ -8,4 +8,8 @@ declare module "solid-styled-components" {
   }
 }
 
-declare module "materialize-css";
+// vite-env.d.ts or any .d.ts file in your project
+declare module "*?raw" {
+  const content: string;
+  export default content;
+}

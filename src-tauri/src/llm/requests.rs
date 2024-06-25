@@ -22,6 +22,7 @@ fn format_lld_request(
 }
 
 pub async fn generate_quiz_questions(
+    model: &str,
     topics: &[String],
     difficulty: &str,
     num_questions: u32,
@@ -35,7 +36,7 @@ pub async fn generate_quiz_questions(
 
     // Create the generation request
     let request = GenerationRequest::new(
-        "qwen2:7b".to_string(),
+        model.to_string(),
         format!("\n\nHuman: {}\n\nAssistant:", user_question),
     )
     .system(SYSTEM_PROMPT.to_string());

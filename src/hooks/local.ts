@@ -1,6 +1,16 @@
 import { filter, head } from "lodash";
 import { QuizInfo, Topics } from "../types";
 
+export const getStringValue = (name: string): string => {
+  const data = localStorage.getItem(name);
+  return data || "";
+};
+
+export const saveStringValue = (name: string, value: string): string => {
+  localStorage.setItem(name, value);
+  return value || "";
+};
+
 export const getLocalQuizes = (): QuizInfo[] => {
   const data = localStorage.getItem("quizes");
   return data ? JSON.parse(data) : [];

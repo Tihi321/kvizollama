@@ -4,7 +4,7 @@ mod utils;
 
 use database::{
     disk::{add_quiz, get_quizes, import_quizes, remove_quiz},
-    structs::{QuizQuestionRequest, Topics},
+    structs::{QuizQuestionRequest, QuizQuestionSaveRequest, Topics},
 };
 use llm::requests::generate_quiz_questions;
 use serde_json::Error as SerdeError;
@@ -22,6 +22,7 @@ pub async fn run() {
             let get_quizes_handle = app_handle.clone();
             let remove_quiz_handle = app_handle.clone();
             let import_quiz_handle = app_handle.clone();
+            let save_quiz_handle = app_handle.clone();
 
             let _ = create_window(&app).unwrap();
 
@@ -30,6 +31,7 @@ pub async fn run() {
                 let generate_quiz_handle_clone = generate_quiz_handle.clone();
                 match serde_json::from_str::<QuizQuestionRequest>(value) {
                     Ok(payload) => {
+                        let model = payload.model;
                         let name = payload.name;
                         let topics = payload.topics;
                         let difficulty = payload.difficulty;
@@ -38,6 +40,7 @@ pub async fn run() {
 
                         tokio::spawn(async move {
                             match generate_quiz_questions(
+                                &model,
                                 &topics,
                                 &difficulty,
                                 num_questions,
@@ -77,6 +80,26 @@ pub async fn run() {
                                 Err(e) => println!("Error generating questions: {}", e),
                             }
                         });
+                    }
+                    Err(e) => eprintln!("Failed to parse event payload: {}", e),
+                }
+            });
+
+            app.listen_any("save_quiz", move |event| {
+                let value = event.payload();
+                match serde_json::from_str::<QuizQuestionSaveRequest>(value) {
+                    Ok(payload) => {
+                        let data = payload.data;
+                        let name = payload.name;
+                        add_quiz(&name, data).expect("Failed to add quiz");
+                        let quizes = get_quizes().expect("Failed to add quiz");
+                        // Use the app_handle to get the window by its label
+                        if let Some(window) = save_quiz_handle.get_webview_window(WINDOW_LABEL) {
+                            // Now you can interact with the window, e.g., emit an event back to it
+                            window
+                                .emit_to(WINDOW_LABEL, "quizes", quizes)
+                                .expect("Failed to emit event");
+                        }
                     }
                     Err(e) => eprintln!("Failed to parse event payload: {}", e),
                 }

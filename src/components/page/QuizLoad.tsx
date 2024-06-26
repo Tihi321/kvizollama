@@ -58,7 +58,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
       >
         <FormControl fullWidth margin="normal">
           <InputLabel>CDN</InputLabel>
-          <Select value={""} onChange={(e) => {}}>
+          <Select value={""} onChange={() => {}}>
             {map(cdnQuizes, (values: QuizInfo) => (
               <MenuItemStyled>
                 <MenuTitle>{values.name}</MenuTitle>
@@ -86,7 +86,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
         </FormControl>
         <FormControl fullWidth margin="normal">
           <InputLabel>Local Storage</InputLabel>
-          <Select value={""} onChange={(e) => {}}>
+          <Select value={""} onChange={() => {}}>
             {map(localQuizes(), (values: QuizInfo) => (
               <MenuItemStyled>
                 <MenuTitle>{values.name}</MenuTitle>
@@ -125,7 +125,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
         {isApp && (
           <FormControl fullWidth margin="normal">
             <InputLabel>Disk</InputLabel>
-            <Select value={""} onChange={(e) => {}}>
+            <Select value={""} onChange={() => {}}>
               {map(quizes, (values: QuizInfo) => (
                 <MenuItemStyled>
                   <MenuTitle>{values.name}</MenuTitle>

@@ -2,8 +2,8 @@ import { Component, createSignal, onMount } from "solid-js";
 import { emit } from "@tauri-apps/api/event";
 import { styled } from "solid-styled-components";
 import { Button, Box, FormControl, InputLabel, Select, MenuItem } from "@suid/material";
-import { QuizInfo } from "../../types";
-import { getLocalQuizes, removeLocalQuiz } from "../../hooks/local";
+import { CdnQuizInfo, CustomQuizInfo, QuizInfo } from "../../types";
+import { getCustomQuizes, getLocalQuizes, removeLocalQuiz } from "../../hooks/local";
 import { map } from "lodash";
 import { Container } from "../layout/Container";
 
@@ -24,24 +24,31 @@ const MenuItemStyled = styled(MenuItem)`
 
 interface QuizLoadProps {
   onLoad: (quiz: QuizInfo) => void;
+  onFetchCDNLoad: (path: string, name: string) => void;
+  onFetchLoad: (url: string, name: string) => void;
   onBack: () => void;
   quizes: QuizInfo[];
-  cdnQuizes: QuizInfo[];
+  cdnQuizes: CdnQuizInfo[];
   isApp: boolean;
 }
 
 export const QuizLoad: Component<QuizLoadProps> = ({
   onLoad,
+  onFetchCDNLoad,
+  onFetchLoad,
   onBack,
   quizes,
   cdnQuizes,
   isApp,
 }) => {
   const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
+  const [customQuizes, setCustomQuizes] = createSignal<CustomQuizInfo[]>([]);
 
   onMount(() => {
     const localQuizes = getLocalQuizes();
     setLocalQuizes(localQuizes);
+    const customQuizes = getCustomQuizes();
+    setCustomQuizes(customQuizes);
   });
 
   return (
@@ -59,12 +66,31 @@ export const QuizLoad: Component<QuizLoadProps> = ({
         <FormControl fullWidth margin="normal">
           <InputLabel>CDN</InputLabel>
           <Select value={""} onChange={() => {}}>
-            {map(cdnQuizes, (values: QuizInfo) => (
+            {map(cdnQuizes, (values: CdnQuizInfo) => (
               <MenuItemStyled>
                 <MenuTitle>{values.name}</MenuTitle>
                 <Button
                   onClick={() => {
-                    onLoad(values);
+                    onFetchCDNLoad(values.path, values.name);
+                  }}
+                  variant="contained"
+                  color="primary"
+                >
+                  Load
+                </Button>
+              </MenuItemStyled>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Custom Quizes</InputLabel>
+          <Select value={""} onChange={() => {}}>
+            {map(customQuizes(), (values: CustomQuizInfo) => (
+              <MenuItemStyled>
+                <MenuTitle>{values.name}</MenuTitle>
+                <Button
+                  onClick={() => {
+                    onFetchLoad(values.url, values.name);
                   }}
                   variant="contained"
                   color="primary"
@@ -73,12 +99,22 @@ export const QuizLoad: Component<QuizLoadProps> = ({
                 </Button>
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(JSON.stringify(values.data));
+                    navigator.clipboard.writeText(JSON.stringify(values.url));
                   }}
                   variant="contained"
                   color="primary"
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={() => {
+                    const localQuizes = removeLocalQuiz(values.name);
+                    setLocalQuizes(localQuizes);
+                  }}
+                  variant="contained"
+                  color="secondary"
+                >
+                  Remove
                 </Button>
               </MenuItemStyled>
             ))}

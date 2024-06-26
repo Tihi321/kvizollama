@@ -9,10 +9,9 @@ interface QuizFormProps {
   onGenerate: (formData: QuizFormData, options: QuizFormOptions) => void;
   onBack: () => void;
   isApp: boolean;
-  systemPrompt: string;
 }
 
-export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp, systemPrompt }) => {
+export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }) => {
   const [type, setType] = createSignal("");
   const [localModel, setLocalModel] = createSignal("qwen2:7b");
   const [name, setName] = createSignal("");
@@ -137,16 +136,6 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp, 
           </Button>
         </Box>
       </form>
-      <Button
-        sx={{ marginTop: "20px" }}
-        onClick={() => {
-          navigator.clipboard.writeText(systemPrompt);
-        }}
-        variant="contained"
-        color="primary"
-      >
-        Copy System Prompt
-      </Button>
     </Container>
   );
 };

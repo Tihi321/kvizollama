@@ -7,7 +7,7 @@ import { CircularProgress, Box, Button } from "@suid/material";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { emit, listen } from "@tauri-apps/api/event";
-import { QuizFormData, Topics, QuizInfo, QuizFormOptions } from "./types";
+import { QuizFormData, Topics, QuizInfo, QuizFormOptions, CdnQuizInfo } from "./types";
 import { QuizComponent } from "./components/page/QuizComponent";
 import { QuizForm } from "./components/page/QuizForm";
 import { get, isEmpty } from "lodash";
@@ -18,8 +18,9 @@ import { QuizSave } from "./components/page/QuizSave";
 import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { saveLocalQuiz } from "./hooks/local";
-import { getCdnQuizes } from "./utils";
+import { fetchCdnAvailableQuizes, getCdnQuiz, getCustomQuiz } from "./utils";
 import { TitleScreen } from "./components/layout/TitleScreen";
+import { QuizAbout } from "./components/page/QuizAbout";
 
 const Container = styled("div")`
   display: flex;
@@ -32,11 +33,12 @@ const MenuButton = styled(Button)`
 `;
 
 export const App = () => {
-  const [cdnQuizes, setCdnQuizes] = createSignal<QuizInfo[]>([]);
+  const [cdnAvailableQuizes, setCdnAvailableQuizes] = createSignal<CdnQuizInfo[]>([]);
   const [quizes, setQuizes] = createSignal<QuizInfo[]>([]);
   const [quizStarted, setQuizStarted] = createSignal(false);
   const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
   const [generateQuiz, setGenerateQuiz] = createSignal(false);
+  const [aboutQuiz, setAboutQuiz] = createSignal(false);
   const [showLoadQuiz, setShowLoadQuiz] = createSignal(false);
   const [showSaveQuiz, setShowSaveQuiz] = createSignal(false);
   const [showSettingsQuiz, setShowSettingsQuiz] = createSignal(false);
@@ -50,6 +52,7 @@ export const App = () => {
       !loading() &&
       !showLoadQuiz() &&
       !showSaveQuiz() &&
+      !aboutQuiz() &&
       !showSettingsQuiz()
   );
 
@@ -59,9 +62,9 @@ export const App = () => {
     if (isApp) {
       emit("get_quizes");
     }
-    getCdnQuizes().then((response) => {
+    fetchCdnAvailableQuizes().then((response) => {
       setLoading(false);
-      setCdnQuizes(response);
+      setCdnAvailableQuizes(response);
     });
   });
 
@@ -142,7 +145,10 @@ export const App = () => {
             Save quiz
           </MenuButton>
           <MenuButton onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
-            Generate new quiz
+            Generate quiz
+          </MenuButton>
+          <MenuButton onClick={() => setAboutQuiz(true)} variant="contained" color="primary">
+            About
           </MenuButton>
         </Box>
       </Show>
@@ -167,13 +173,29 @@ export const App = () => {
       </Show>
       <Show when={showLoadQuiz()}>
         <QuizLoad
-          cdnQuizes={cdnQuizes()}
+          cdnQuizes={cdnAvailableQuizes()}
           isApp={isApp()}
           quizes={quizes()}
           onBack={() => setShowLoadQuiz(false)}
           onLoad={(quiz) => {
             setSelectedQuiz(quiz);
             setShowLoadQuiz(false);
+          }}
+          onFetchCDNLoad={(path, name) => {
+            setShowLoadQuiz(false);
+            setLoading(true);
+            getCdnQuiz(path, name).then((data) => {
+              setSelectedQuiz(data);
+              setLoading(false);
+            });
+          }}
+          onFetchLoad={(url, name) => {
+            setShowLoadQuiz(false);
+            setLoading(true);
+            getCustomQuiz(url, name).then((data) => {
+              setSelectedQuiz(data);
+              setLoading(false);
+            });
           }}
         />
       </Show>
@@ -185,11 +207,13 @@ export const App = () => {
       </Show>
       <Show when={generateQuiz()}>
         <QuizForm
-          systemPrompt={systemPrompt}
           isApp={isApp()}
           onGenerate={handleGenerateQuiz}
           onBack={() => setGenerateQuiz(false)}
         />
+      </Show>
+      <Show when={aboutQuiz()}>
+        <QuizAbout systemPrompt={systemPrompt} onBack={() => setAboutQuiz(false)} />
       </Show>
       <Footer />
     </Container>

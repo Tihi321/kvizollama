@@ -38,7 +38,7 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
           }}
         />
         <LocalTextInput
-          type="text"
+          type="number"
           label="Questions per quiz"
           value={questionPerQuiz()}
           onSave={(value) => {

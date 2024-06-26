@@ -15,6 +15,7 @@ const Header = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex: 1;
 `;
 
 const TopicTitle = styled(Typography)`
@@ -22,7 +23,7 @@ const TopicTitle = styled(Typography)`
 `;
 
 const HintBox = styled("div")`
-  background-color: #fff9c4;
+  background-color: ${(props) => props?.theme?.colors.hint};
   padding: 16px;
   margin-bottom: 16px;
   border-radius: 4px;
@@ -33,12 +34,6 @@ const AnswerGrid = styled("div")`
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
-`;
-
-const AnswerButton = styled(Button)`
-  height: 100%;
-  text-transform: none;
-  font-size: 16px;
 `;
 
 const ButtonContainer = styled("div")`
@@ -55,7 +50,8 @@ const ResultContainer = styled("div")`
 `;
 
 const ResultText = styled(Typography)<{ correct: boolean }>`
-  color: ${(props) => (props.correct ? "#4caf50" : "#f44336")};
+  color: ${(props) =>
+    props.correct ? props?.theme?.colors.correct : props?.theme?.colors.incorrect};
   font-weight: bold;
   margin-bottom: 8px;
 `;
@@ -93,10 +89,10 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
   return (
     <QuestionCard>
       <Header>
-        <TopicTitle variant="h5">
+        <TopicTitle variant="h6">
           {questionTopic()} ({props.difficulty})
         </TopicTitle>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h4" gutterBottom>
           {questionTitle()}
         </Typography>
 
@@ -108,22 +104,22 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
       </Header>
 
       {!showResult() && (
-        <div>
+        <>
           <AnswerGrid>
             <For each={props.question.answers}>
               {(answer, index) => (
-                <AnswerButton
+                <Button
                   variant={selectedAnswerIndex() === index() ? "contained" : "outlined"}
                   color="primary"
                   onClick={() => setSelectedAnswerIndex(index())}
                   disabled={showResult()}
+                  sx={{ fontSize: "16px", padding: "16px", textTransform: "capitalize" }}
                 >
                   {answer.answer}
-                </AnswerButton>
+                </Button>
               )}
             </For>
           </AnswerGrid>
-
           <ButtonContainer>
             <Button
               variant="outlined"
@@ -142,7 +138,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
               Submit
             </Button>
           </ButtonContainer>
-        </div>
+        </>
       )}
       {showResult() && (
         <ResultContainer>

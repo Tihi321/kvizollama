@@ -1,10 +1,9 @@
-import { Component, createMemo, createSignal, onMount } from "solid-js";
+import { Component, createMemo, createSignal } from "solid-js";
 import { styled } from "solid-styled-components";
 import { emit } from "@tauri-apps/api/event";
 import { Button, TextField, Box } from "@suid/material";
-import { QuizInfo } from "../../types";
-import { getLocalQuizes, saveLocalQuiz } from "../../hooks/local";
-import { find, get, isEmpty, map } from "lodash";
+import { saveCustomQuiz, saveLocalQuiz } from "../../hooks/local";
+import { get, isEmpty, map } from "lodash";
 import { openFile } from "../../hooks/file";
 import { Container } from "../layout/Container";
 
@@ -18,23 +17,13 @@ interface QuizSaveProps {
 }
 
 export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
-  const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
   const [localName, setLocalName] = createSignal("");
   const [localQuiz, setLocalQuiz] = createSignal("");
+  const [customName, setCustomName] = createSignal("");
+  const [customQuiz, setCustomQuiz] = createSignal("");
 
-  const disabled = createMemo(() => {
-    if (isEmpty(localName()) || isEmpty(localQuiz())) {
-      return true;
-    }
-
-    const found = find(localQuizes(), (quiz) => quiz.name === localName());
-    return Boolean(found);
-  });
-
-  onMount(() => {
-    const localQuizes = getLocalQuizes();
-    setLocalQuizes(localQuizes);
-  });
+  const saveLocalQuizDisabled = createMemo(() => isEmpty(localName()) || isEmpty(localQuiz()));
+  const savelCustomQuizDisabled = createMemo(() => isEmpty(customName()) || isEmpty(customQuiz()));
 
   return (
     <Container>
@@ -65,14 +54,42 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
           />
           <FullWidthButton
             onClick={() => {
-              const localQuizes = saveLocalQuiz(localName(), localQuiz());
-              setLocalQuizes(localQuizes);
+              saveLocalQuiz(localName(), localQuiz());
               setLocalName("");
               setLocalQuiz("");
             }}
             variant="contained"
             color="primary"
-            disabled={disabled()}
+            disabled={saveLocalQuizDisabled()}
+            sx={{ marginBottom: 4 }}
+          >
+            Save to local Storage
+          </FullWidthButton>
+        </Box>
+        <Box>
+          <TextField
+            fullWidth
+            label="Name of the quiz"
+            value={customName()}
+            onChange={(e) => setCustomName(e.target.value)}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Quiz Url"
+            value={customQuiz()}
+            onChange={(e) => setCustomQuiz(e.target.value)}
+            margin="normal"
+          />
+          <FullWidthButton
+            onClick={() => {
+              saveCustomQuiz(customName(), customQuiz());
+              setCustomName("");
+              setCustomQuiz("");
+            }}
+            variant="contained"
+            color="primary"
+            disabled={savelCustomQuizDisabled()}
             sx={{ marginBottom: 4 }}
           >
             Save to local Storage

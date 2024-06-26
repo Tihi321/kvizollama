@@ -1,14 +1,29 @@
 import { filter, head } from "lodash";
-import { QuizInfo, Topics } from "../types";
+import { CustomQuizInfo, QuizInfo, Topics } from "../types";
 
 export const getStringValue = (name: string): string => {
   const data = localStorage.getItem(name);
   return data || "";
 };
 
-export const saveStringValue = (name: string, value: string): string => {
+export const saveStringValue = (name: string, value: string) => {
   localStorage.setItem(name, value);
-  return value || "";
+};
+
+export const getCustomQuizes = (): CustomQuizInfo[] => {
+  const data = localStorage.getItem("customquizes");
+  return JSON.parse(data || "[]") || [];
+};
+
+export const saveCustomQuiz = (name: string, url: string) => {
+  const localValues = getCustomQuizes();
+  const output: CustomQuizInfo[] = [...localValues, { name, url }];
+  localStorage.setItem("customquizes", JSON.stringify(output));
+};
+
+export const removeCustomQuiz = (name: string) => {
+  const data = filter(getCustomQuizes(), (values) => values.name !== name);
+  localStorage.setItem("customquizes", JSON.stringify(data));
 };
 
 export const getLocalQuizes = (): QuizInfo[] => {
@@ -24,11 +39,9 @@ export const saveLocalQuiz = (name: string, values: string) => {
   const output: QuizInfo[] = [...localQuizes, newQuiz];
 
   localStorage.setItem("quizes", JSON.stringify(output));
-
-  return output;
 };
 
-export const removeLocalQuiz = (name: string) => {
+export const removeLocalQuiz = (name: string): QuizInfo[] => {
   const data = filter(getLocalQuizes(), (quiz) => quiz.name !== name);
   localStorage.setItem("quizes", JSON.stringify(data));
 

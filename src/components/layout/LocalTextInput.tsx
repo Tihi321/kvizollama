@@ -3,7 +3,7 @@ import { Button, TextField, Box } from "@suid/material";
 import { isEmpty } from "lodash";
 
 interface LocalTextInputProps {
-  type: "text" | "password";
+  type: "text" | "password" | "number";
   label: string;
   value: string;
   onRemove: () => void;

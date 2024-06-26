@@ -23,6 +23,16 @@ export type QuizInfo = {
   data: Topics[];
 };
 
+export type CdnQuizInfo = {
+  name: string;
+  path: string;
+};
+
+export type CustomQuizInfo = {
+  name: string;
+  url: string;
+};
+
 export type QuizesResponse = Array<[string, string]>;
 
 export type QuizQuestionResponse = {

@@ -1,8 +1,8 @@
-import { Component, createSignal, onMount } from "solid-js";
-import { Button, TextField, Box } from "@suid/material";
+import { Component, createSignal, onMount, Show } from "solid-js";
+import { Button } from "@suid/material";
 import { Container } from "../layout/Container";
 import { getStringValue, saveStringValue } from "../../hooks/local";
-import { isEmpty } from "lodash";
+import { LocalTextInput } from "../layout/LocalTextInput";
 
 interface QuizSettingsProps {
   onBack: () => void;
@@ -10,64 +10,48 @@ interface QuizSettingsProps {
 
 export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
   const [perplexityApi, setPerplexityApi] = createSignal("");
+  const [questionPerQuiz, setQuestionPerQuiz] = createSignal("");
+  const [mounted, setMounted] = createSignal(false);
 
   onMount(() => {
+    const numberOfQuestion = getStringValue("questionPerQuiz");
+    setQuestionPerQuiz(numberOfQuestion || "10");
     const localQuizes = getStringValue("perplexityApi");
     setPerplexityApi(localQuizes);
+    setMounted(true);
   });
 
   return (
     <Container>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-          gap: 2,
-          flex: 1,
-        }}
-      >
-        <TextField
-          fullWidth
+      <Show when={mounted()}>
+        <LocalTextInput
+          type="password"
           label="Perplexity API"
           value={perplexityApi()}
-          onChange={(e) => setPerplexityApi(e.target.value)}
-          margin="normal"
-          type="password"
-        />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexDirection: "row",
-            gap: 2,
-            flex: 1,
+          onSave={(value) => {
+            saveStringValue("perplexityApi", value);
+            setPerplexityApi(value);
           }}
-        >
-          <Button
-            disabled={isEmpty(perplexityApi())}
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              saveStringValue("perplexityApi", perplexityApi());
-            }}
-          >
-            Save
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              saveStringValue("perplexityApi", "");
-              setPerplexityApi("");
-            }}
-          >
-            Remove
-          </Button>
-        </Box>
-      </Box>
+          onRemove={() => {
+            setPerplexityApi("");
+            saveStringValue("perplexityApi", "");
+          }}
+        />
+        <LocalTextInput
+          type="text"
+          label="Questions per quiz"
+          value={questionPerQuiz()}
+          onSave={(value) => {
+            saveStringValue("questionPerQuiz", value);
+            setPerplexityApi(value);
+          }}
+          onRemove={() => {
+            setQuestionPerQuiz("");
+            saveStringValue("questionPerQuiz", "10");
+          }}
+        />
+      </Show>
+
       <Button variant="contained" color="primary" onClick={onBack}>
         Back
       </Button>

@@ -1,4 +1,4 @@
-import { QuizFormData } from "../types";
+import { QuizFormData } from "../../types";
 
 interface Message {
   role: string;

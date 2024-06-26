@@ -26,10 +26,17 @@ interface QuizLoadProps {
   onLoad: (quiz: QuizInfo) => void;
   onBack: () => void;
   quizes: QuizInfo[];
+  cdnQuizes: QuizInfo[];
   isApp: boolean;
 }
 
-export const QuizLoad: Component<QuizLoadProps> = ({ onLoad, onBack, quizes, isApp }) => {
+export const QuizLoad: Component<QuizLoadProps> = ({
+  onLoad,
+  onBack,
+  quizes,
+  cdnQuizes,
+  isApp,
+}) => {
   const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
 
   onMount(() => {
@@ -49,6 +56,34 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onLoad, onBack, quizes, isA
           gap: 2,
         }}
       >
+        <FormControl fullWidth margin="normal">
+          <InputLabel>CDN</InputLabel>
+          <Select value={""} onChange={(e) => {}}>
+            {map(cdnQuizes, (values: QuizInfo) => (
+              <MenuItemStyled>
+                <MenuTitle>{values.name}</MenuTitle>
+                <Button
+                  onClick={() => {
+                    onLoad(values);
+                  }}
+                  variant="contained"
+                  color="primary"
+                >
+                  Load
+                </Button>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify(values.data));
+                  }}
+                  variant="contained"
+                  color="primary"
+                >
+                  Export
+                </Button>
+              </MenuItemStyled>
+            ))}
+          </Select>
+        </FormControl>
         <FormControl fullWidth margin="normal">
           <InputLabel>Local Storage</InputLabel>
           <Select value={""} onChange={(e) => {}}>

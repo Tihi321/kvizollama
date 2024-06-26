@@ -18,6 +18,7 @@ import { QuizSave } from "./components/page/QuizSave";
 import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { saveLocalQuiz } from "./hooks/local";
+import { getCdnQuizes } from "./utils";
 
 const Container = styled("div")`
   display: flex;
@@ -30,6 +31,7 @@ const MenuButton = styled(Button)`
 `;
 
 export const App = () => {
+  const [cdnQuizes, setCdnQuizes] = createSignal<QuizInfo[]>([]);
   const [quizes, setQuizes] = createSignal<QuizInfo[]>([]);
   const [quizStarted, setQuizStarted] = createSignal(false);
   const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
@@ -55,9 +57,11 @@ export const App = () => {
     setIsApp(isApp);
     if (isApp) {
       emit("get_quizes");
-    } else {
-      setLoading(false);
     }
+    getCdnQuizes().then((response) => {
+      setLoading(false);
+      setCdnQuizes(response);
+    });
   });
 
   createEffect(async () => {
@@ -168,6 +172,7 @@ export const App = () => {
       </Show>
       <Show when={showLoadQuiz()}>
         <QuizLoad
+          cdnQuizes={cdnQuizes()}
           isApp={isApp()}
           quizes={quizes()}
           onBack={() => setShowLoadQuiz(false)}
@@ -185,6 +190,7 @@ export const App = () => {
       </Show>
       <Show when={generateQuiz()}>
         <QuizForm
+          systemPrompt={systemPrompt}
           isApp={isApp()}
           onGenerate={handleGenerateQuiz}
           onBack={() => setGenerateQuiz(false)}

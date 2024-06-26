@@ -72,14 +72,14 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp, 
           </Select>
         </FormControl>
         {type() === "ollama" && (
-          <TextField
-            fullWidth
-            label="Model name"
-            value={localModel()}
-            onChange={(e) => setLocalModel(e.target.value)}
-            margin="normal"
-            disabled={true}
-          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Local model</InputLabel>
+            <Select value={localModel()} onChange={(e) => setLocalModel(e.target.value)}>
+              <MenuItem value="qwen2:7b">Qwen2</MenuItem>
+              <MenuItem value="llama3:8b">Llama3</MenuItem>
+              <MenuItem value="mistral:7b">Mistral</MenuItem>
+            </Select>
+          </FormControl>
         )}
         <TextField
           fullWidth

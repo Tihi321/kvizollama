@@ -1,7 +1,7 @@
 import { Component, createSignal, Show, createMemo } from "solid-js";
 import { QuizQuestionResponse, Topics } from "../../types";
-import { QuizQuestion } from "../quiz/QuizQuestion";
-import { QuizSummary } from "../quiz/QuizSummary";
+import { QuizQuestion } from "./QuizQuestion";
+import { QuizSummary } from "./QuizSummary";
 import { styled } from "solid-styled-components";
 import { Button } from "@suid/material";
 

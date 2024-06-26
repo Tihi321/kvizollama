@@ -5,7 +5,7 @@ import { QuizSummary } from "./QuizSummary";
 import { styled } from "solid-styled-components";
 import { Button } from "@suid/material";
 
-interface QuizProps {
+interface QuizComponentProps {
   quiz: Topics[];
   onSubmit: () => void;
   onCancel: () => void;
@@ -25,7 +25,7 @@ const ButtonBack = styled(Button)`
   width: 100px;
 `;
 
-export const QuizComponent: Component<QuizProps> = ({ onCancel, onSubmit, quiz }) => {
+export const QuizComponent: Component<QuizComponentProps> = ({ onCancel, onSubmit, quiz }) => {
   const [currentQuizIndex, setCurrentQuizIndex] = createSignal(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = createSignal(0);
   const [responses, setResponses] = createSignal<QuizQuestionResponse[]>([]);

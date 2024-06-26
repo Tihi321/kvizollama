@@ -19,6 +19,7 @@ import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { saveLocalQuiz } from "./hooks/local";
 import { getCdnQuizes } from "./utils";
+import { TitleScreen } from "./components/layout/TitleScreen";
 
 const Container = styled("div")`
   display: flex;
@@ -118,16 +119,10 @@ export const App = () => {
           }}
         >
           {selectedQuiz() && (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "column",
-              }}
-            >
-              {selectedQuiz()?.name} - {selectedQuiz()?.difficulty}
-            </Box>
+            <TitleScreen
+              title={selectedQuiz()?.name || ""}
+              difficulty={selectedQuiz()?.difficulty || ""}
+            />
           )}
           <MenuButton
             onClick={() => setQuizStarted(true)}

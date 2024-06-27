@@ -1,8 +1,14 @@
 import { Component, createSignal, onMount, Show } from "solid-js";
-import { Button } from "@suid/material";
+import { Button, FormControlLabel, Checkbox } from "@suid/material";
 import { Container } from "../layout/Container";
-import { getStringValue, saveStringValue } from "../../hooks/local";
+import {
+  getBooleanValue,
+  getStringValue,
+  saveBooleanValuee,
+  saveStringValue,
+} from "../../hooks/local";
 import { LocalTextInput } from "../layout/LocalTextInput";
+import { LocalSelectVoice } from "../layout/LocalSelectVoice";
 
 interface QuizSettingsProps {
   onBack: () => void;
@@ -11,6 +17,7 @@ interface QuizSettingsProps {
 export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
   const [perplexityApi, setPerplexityApi] = createSignal("");
   const [questionPerQuiz, setQuestionPerQuiz] = createSignal("");
+  const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
 
   onMount(() => {
@@ -18,6 +25,8 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
     setQuestionPerQuiz(numberOfQuestion || "10");
     const localQuizes = getStringValue("perplexityApi");
     setPerplexityApi(localQuizes);
+    const autoStartVoice = getBooleanValue("autostartvoice");
+    setAutoStartVoice(autoStartVoice);
     setMounted(true);
   });
 
@@ -49,6 +58,19 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
             setQuestionPerQuiz("");
             saveStringValue("questionPerQuiz", "10");
           }}
+        />
+        <LocalSelectVoice />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={autoStartVoice()}
+              onChange={(event: any) => {
+                setAutoStartVoice(!event.target.checked);
+                saveBooleanValuee("autostartvoice", !event.target.checked);
+              }}
+            />
+          }
+          label="Autostart voice"
         />
       </Show>
 

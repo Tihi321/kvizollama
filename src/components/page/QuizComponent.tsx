@@ -1,9 +1,8 @@
-import { Component, createSignal, Show, createMemo } from "solid-js";
+import { Component, createSignal, Show, createMemo, createEffect } from "solid-js";
 import { Question, QuizQuestionResponse, Topics } from "../../types";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizSummary } from "./QuizSummary";
 import { styled } from "solid-styled-components";
-import { Button } from "@suid/material";
 import { getStringValue } from "../../hooks/local";
 import { shuffle, slice } from "lodash";
 
@@ -25,13 +24,6 @@ const QuizContainer = styled("div")`
   padding: 20px;
   flex: 1;
   display: flex;
-`;
-
-const ButtonBack = styled(Button)`
-  position: absolute !important;
-  top: 20px;
-  left: 20px;
-  width: 100px;
 `;
 
 const mergeTopicsAndQuestions = (quiz: Topics[]): QuizComponentQuestions => {
@@ -98,12 +90,10 @@ export const QuizComponent: Component<QuizComponentProps> = ({ onCancel, onSubmi
             title={currentQuestion().title}
             question={currentQuestion().question}
             onNext={handleNext}
+            onBack={onCancel}
           />
         </Show>
       </Show>
-      <ButtonBack onClick={onCancel} variant="contained" color="primary">
-        Back
-      </ButtonBack>
     </QuizContainer>
   );
 };

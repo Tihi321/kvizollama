@@ -1,13 +1,25 @@
-import { Component, createSignal, For, createMemo, createEffect } from "solid-js";
+import { Component, createSignal, For, createMemo, createEffect, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Button, Typography } from "@suid/material";
+import { Button, Typography, IconButton, SvgIcon } from "@suid/material";
 import { Question, QuizQuestionResponse } from "../../types";
+import { getVoice, getVoices } from "../../utils";
+import { getBooleanValue, getStringValue } from "../../hooks/local";
+import { isUndefined } from "lodash";
 
 const QuestionCard = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+`;
+
+const IconButtonStyled = styled(IconButton)`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  svg {
+    width: 24px;
+  }
 `;
 
 const Header = styled.div`
@@ -39,6 +51,8 @@ const AnswerGrid = styled("div")`
 const ButtonContainer = styled("div")`
   display: flex;
   justify-content: space-between;
+  margin-top: 10px;
+  gap: 8px;
 `;
 
 const ResultContainer = styled("div")`
@@ -51,7 +65,7 @@ const ResultContainer = styled("div")`
 
 const ResultText = styled(Typography)<{ correct: boolean }>`
   color: ${(props) =>
-    props.correct ? props?.theme?.colors.correct : props?.theme?.colors.incorrect};
+    props?.correct ? props?.theme?.colors.correct : props?.theme?.colors.incorrect};
   font-weight: bold;
   margin-bottom: 8px;
 `;
@@ -62,16 +76,69 @@ interface QuizQuestionProps {
   title: string;
   question: Question;
   onNext: (response: QuizQuestionResponse) => void;
+  onBack: () => void;
 }
 
 export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
+  const { onBack, onNext, topic, question, difficulty, title } = props;
+  const [mounted, setMounted] = createSignal(false);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = createSignal<number | null>(null);
   const [showHint, setShowHint] = createSignal(false);
   const [showResult, setShowResult] = createSignal(false);
   const [questionTitle, setQuestionTitle] = createSignal("");
   const [questionTopic, setQuestionTopc] = createSignal("");
+  const [autoStartVoice, setAutoStartVoice] = createSignal(false);
+  const [selectedVoice, setSelectedVoice] = createSignal<string>();
+  const [availableVoices, setAvailableVoices] = createSignal<SpeechSynthesisVoice[]>([]);
+  let speaker: SpeechSynthesisUtterance | null = null;
+
+  onMount(() => {
+    speaker = new SpeechSynthesisUtterance();
+    const voice = getStringValue("selectedVoice");
+    setSelectedVoice(voice || "");
+    const autoStartVoice = getBooleanValue("autostartvoice");
+    setAutoStartVoice(autoStartVoice);
+    setMounted(true);
+  });
 
   createEffect(() => {
+    if (mounted()) {
+      const voices = getVoices();
+      setAvailableVoices(voices);
+    }
+  });
+
+  createEffect(() => {
+    if (!isUndefined(selectedVoice()) && speaker) {
+      const voice = getVoice(selectedVoice() || "", availableVoices());
+      if (voice) {
+        speaker.voice = voice;
+        speaker.lang = voice.lang;
+      }
+      speaker.text = props.title;
+
+      if (autoStartVoice()) {
+        speechSynthesis.speak(speaker);
+      }
+    }
+  });
+
+  const stopSpeaking = () => {
+    if (!speaker) return;
+    speechSynthesis.cancel();
+  };
+
+  const speak = () => {
+    if (!speaker) return;
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    } else {
+      speechSynthesis.speak(speaker);
+    }
+  };
+
+  createEffect(() => {
+    stopSpeaking();
     setSelectedAnswerIndex(null);
     setShowHint(false);
     setShowResult(false);
@@ -79,34 +146,45 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
     setQuestionTopc(props.topic);
   });
 
-  const selectedAnswer = createMemo(() => props.question.answers[selectedAnswerIndex()!]);
+  const selectedAnswer = createMemo(() => question.answers[selectedAnswerIndex()!]);
 
   const handleSubmit = () => {
+    stopSpeaking();
     if (selectedAnswerIndex() === null) return;
     setShowResult(true);
   };
 
   return (
     <QuestionCard>
-      <Header>
-        <TopicTitle variant="h6">
-          {questionTopic()} ({props.difficulty})
-        </TopicTitle>
-        <Typography variant="h4" gutterBottom>
-          {questionTitle()}
-        </Typography>
+      {!showResult() && (
+        <Header>
+          <IconButtonStyled aria-label="toggle volume" onClick={speak}>
+            <SvgIcon viewBox="0 0 20 20">
+              <path
+                d="M7.5 4c.18 0 .34.1.43.25l.04.08 4 11a.5.5 0 01-.9.42l-.04-.08L9.7 12H5.3l-1.33 3.67a.5.5 0 01-.96-.25l.02-.1 4-11A.5.5 0 017.5 4zm0 1.96L5.67 11h3.66L7.5 5.96zm5.24-3.9l.39.22a9.5 9.5 0 014.84 7.36l.03.31a.5.5 0 01-1 .1l-.03-.32a8.5 8.5 0 00-4.33-6.58l-.38-.21a.5.5 0 01.48-.88zm-1.17 2.68a.5.5 0 01.6-.2l.09.03.12.08a6.5 6.5 0 013.02 4.23l.05.27.04.27a.5.5 0 01-.96.25l-.02-.09-.05-.26a5.5 5.5 0 00-2.37-3.67l-.22-.15-.13-.07a.5.5 0 01-.17-.69z"
+                fill-rule="nonzero"
+                data-astro-cid-gvpn4u4b=""
+              ></path>
+            </SvgIcon>
+          </IconButtonStyled>
 
-        {showHint() && (
-          <HintBox>
-            <Typography>{props.question.hint}</Typography>
-          </HintBox>
-        )}
-      </Header>
-
+          <TopicTitle variant="h6">
+            {questionTopic()} ({difficulty})
+          </TopicTitle>
+          <Typography variant="h4" gutterBottom>
+            {questionTitle()}
+          </Typography>
+          {showHint() && (
+            <HintBox>
+              <Typography>{question.hint}</Typography>
+            </HintBox>
+          )}
+        </Header>
+      )}
       {!showResult() && (
         <>
           <AnswerGrid>
-            <For each={props.question.answers}>
+            <For each={question.answers}>
               {(answer, index) => (
                 <Button
                   variant={selectedAnswerIndex() === index() ? "contained" : "outlined"}
@@ -121,6 +199,9 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
             </For>
           </AnswerGrid>
           <ButtonContainer>
+            <Button variant="contained" color="primary" onClick={onBack}>
+              Back
+            </Button>
             <Button
               variant="outlined"
               color="primary"
@@ -145,25 +226,29 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
           <ResultText correct={selectedAnswer().correct} variant="h6">
             {selectedAnswer().correct ? "Correct!" : "Incorrect. Try again!"}
           </ResultText>
-          <Typography>{props.question.explanation}</Typography>
-          <Button
-            component="button"
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              props.onNext({
-                topic: props.topic,
-                question: props.question.question,
-                userAnswer: selectedAnswer().answer,
-                correctAnswer: props.question.answers.find((a) => a.correct)!.answer,
-                points: selectedAnswer().points,
-                correct: selectedAnswer().correct,
-              });
-            }}
-            style={{ "margin-top": "16px" }}
-          >
-            Next
-          </Button>
+          <Typography>{question.explanation}</Typography>
+          <ButtonContainer>
+            <Button variant="contained" color="primary" onClick={onBack}>
+              Back
+            </Button>
+            <Button
+              component="button"
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                onNext({
+                  topic: topic,
+                  question: question.question,
+                  userAnswer: selectedAnswer().answer,
+                  correctAnswer: question.answers.find((a) => a.correct)!.answer,
+                  points: selectedAnswer().points,
+                  correct: selectedAnswer().correct,
+                });
+              }}
+            >
+              Next
+            </Button>
+          </ButtonContainer>
         </ResultContainer>
       )}
     </QuestionCard>

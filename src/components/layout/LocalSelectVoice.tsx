@@ -81,9 +81,8 @@ export const LocalSelectVoice = () => {
         }}
       >
         <Button
-          disabled={isEmpty(availableVoices())}
           variant="contained"
-          color="primary"
+          color="info"
           onClick={() => {
             const voices = getVoices();
             setAvailableVoices(voices);

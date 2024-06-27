@@ -3,15 +3,6 @@ import { styled } from "solid-styled-components";
 import { Typography, IconButton } from "@suid/material";
 import { Echo } from "../icons/Echo";
 
-const IconButtonStyled = styled(IconButton)`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  svg {
-    width: 24px;
-  }
-`;
-
 const Header = styled.div`
   display: flex;
   flex-direction: column;
@@ -19,6 +10,15 @@ const Header = styled.div`
   align-items: center;
   flex: 1;
   margin-bottom: 16px;
+`;
+
+const IconButtonStyled = styled(IconButton)`
+  position: absolute !important;
+  top: 20px;
+  right: 20px;
+  svg {
+    width: 24px;
+  }
 `;
 
 const TopicTitle = styled("h6")`

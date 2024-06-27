@@ -1,4 +1,4 @@
-import { Component, createSignal, Show, createMemo, createEffect } from "solid-js";
+import { Component, createSignal, Show, createMemo } from "solid-js";
 import { Question, QuizQuestionResponse, Topics } from "../../types";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizSummary } from "./QuizSummary";

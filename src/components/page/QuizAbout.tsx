@@ -27,6 +27,12 @@ export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) 
           LLM-powered quiz app provides an easy way to generate educational content tailored to your
           needs. Let artificial intelligence be your study buddy and quiz master!
         </p>
+        <p>
+          You can pass url to the app it will be loaded at the start of the app. Example url with:
+          <br />
+          <br />
+          ?quiz=https://cdn.tihomir-selak.from.hr/assets/api/ollama/quiz/perplexity/arts.json
+        </p>
 
         <Box
           sx={{

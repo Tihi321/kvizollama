@@ -18,7 +18,7 @@ import { QuizSave } from "./components/page/QuizSave";
 import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { saveLocalQuiz } from "./hooks/local";
-import { fetchCdnAvailableQuizes, getCdnQuiz, getCustomQuiz } from "./utils";
+import { fetchCdnAvailableQuizes, getCdnQuiz, getCustomQuiz, getQuizmUrl } from "./utils";
 import { TitleScreen } from "./components/layout/TitleScreen";
 import { QuizAbout } from "./components/page/QuizAbout";
 
@@ -66,6 +66,16 @@ export const App = () => {
       setLoading(false);
       setCdnAvailableQuizes(response);
     });
+
+    const customQuizUrl = getQuizmUrl();
+    if (customQuizUrl) {
+      setShowLoadQuiz(false);
+      setLoading(true);
+      getCustomQuiz(customQuizUrl, "custom").then((data) => {
+        setSelectedQuiz(data);
+        setLoading(false);
+      });
+    }
   });
 
   createEffect(async () => {

@@ -6,7 +6,8 @@ export const getBooleanValue = (name: string): boolean => {
   return data === "true" ? true : false;
 };
 
-export const saveBooleanValuee = (name: string, value: boolean) => {
+export const saveBooleanValue = (name: string, value: boolean) => {
+  console.log(value);
   localStorage.setItem(name, value ? "true" : "false");
 };
 

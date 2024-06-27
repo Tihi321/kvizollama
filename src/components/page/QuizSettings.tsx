@@ -4,7 +4,7 @@ import { Container } from "../layout/Container";
 import {
   getBooleanValue,
   getStringValue,
-  saveBooleanValuee,
+  saveBooleanValue,
   saveStringValue,
 } from "../../hooks/local";
 import { LocalTextInput } from "../layout/LocalTextInput";
@@ -65,8 +65,9 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
             <Checkbox
               checked={autoStartVoice()}
               onChange={(event: any) => {
-                setAutoStartVoice(!event.target.checked);
-                saveBooleanValuee("autostartvoice", !event.target.checked);
+                const checked = !event.target.checked;
+                setAutoStartVoice(checked);
+                saveBooleanValue("autostartvoice", checked);
               }}
             />
           }

@@ -1,10 +1,11 @@
 import { Component, createSignal, For, createMemo, createEffect, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Button, Typography, IconButton, SvgIcon } from "@suid/material";
+import { Button, Typography } from "@suid/material";
 import { Question, QuizQuestionResponse } from "../../types";
 import { getVoice, getVoices } from "../../utils";
 import { getBooleanValue, getStringValue } from "../../hooks/local";
 import { isUndefined } from "lodash";
+import { QuestionHeader } from "../layout/QuestionHeader";
 
 const QuestionCard = styled.div`
   flex: 1;
@@ -13,39 +14,16 @@ const QuestionCard = styled.div`
   justify-content: space-between;
 `;
 
-const IconButtonStyled = styled(IconButton)`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  svg {
-    width: 24px;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-`;
-
-const TopicTitle = styled(Typography)`
-  margin-bottom: 16px;
-`;
-
-const HintBox = styled("div")`
-  background-color: ${(props) => props?.theme?.colors.hint};
-  padding: 16px;
-  margin-bottom: 16px;
-  border-radius: 4px;
-`;
-
 const AnswerGrid = styled("div")`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 4px;
   margin-bottom: 16px;
+
+  @media (min-width: 700px) {
+    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+  }
 `;
 
 const ButtonContainer = styled("div")`
@@ -53,6 +31,22 @@ const ButtonContainer = styled("div")`
   justify-content: space-between;
   margin-top: 10px;
   gap: 8px;
+  flex-direction: column;
+
+  @media (min-width: 700px) {
+    flex-direction: row;
+  }
+`;
+
+const AnswerButton = styled(Button)`
+  font-size: 16px !important;
+  padding: 8px !important;
+  text-transform: capitalize !important;
+
+  @media (min-width: 700px) {
+    padding: 16px !important;
+    font-size: 24px !important;
+  }
 `;
 
 const ResultContainer = styled("div")`
@@ -80,13 +74,11 @@ interface QuizQuestionProps {
 }
 
 export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
-  const { onBack, onNext, topic, question, difficulty, title } = props;
+  const [title, setTitle] = createSignal<string>("");
   const [mounted, setMounted] = createSignal(false);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = createSignal<number | null>(null);
   const [showHint, setShowHint] = createSignal(false);
   const [showResult, setShowResult] = createSignal(false);
-  const [questionTitle, setQuestionTitle] = createSignal("");
-  const [questionTopic, setQuestionTopc] = createSignal("");
   const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [selectedVoice, setSelectedVoice] = createSignal<string>();
   const [availableVoices, setAvailableVoices] = createSignal<SpeechSynthesisVoice[]>([]);
@@ -115,11 +107,6 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
         speaker.voice = voice;
         speaker.lang = voice.lang;
       }
-      speaker.text = props.title;
-
-      if (autoStartVoice()) {
-        speechSynthesis.speak(speaker);
-      }
     }
   });
 
@@ -130,6 +117,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
 
   const speak = () => {
     if (!speaker) return;
+    speaker.text = props.title;
     if (speechSynthesis.speaking) {
       speechSynthesis.cancel();
     } else {
@@ -142,11 +130,16 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
     setSelectedAnswerIndex(null);
     setShowHint(false);
     setShowResult(false);
-    setQuestionTitle(props.title);
-    setQuestionTopc(props.topic);
+
+    if (autoStartVoice() && speaker && props.title) {
+      speaker.text = props.title;
+      speechSynthesis.speak(speaker);
+    }
+
+    setTitle(props.title);
   });
 
-  const selectedAnswer = createMemo(() => question.answers[selectedAnswerIndex()!]);
+  const selectedAnswer = createMemo(() => props.question.answers[selectedAnswerIndex()!]);
 
   const handleSubmit = () => {
     stopSpeaking();
@@ -157,49 +150,32 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
   return (
     <QuestionCard>
       {!showResult() && (
-        <Header>
-          <IconButtonStyled aria-label="toggle volume" onClick={speak}>
-            <SvgIcon viewBox="0 0 20 20">
-              <path
-                d="M7.5 4c.18 0 .34.1.43.25l.04.08 4 11a.5.5 0 01-.9.42l-.04-.08L9.7 12H5.3l-1.33 3.67a.5.5 0 01-.96-.25l.02-.1 4-11A.5.5 0 017.5 4zm0 1.96L5.67 11h3.66L7.5 5.96zm5.24-3.9l.39.22a9.5 9.5 0 014.84 7.36l.03.31a.5.5 0 01-1 .1l-.03-.32a8.5 8.5 0 00-4.33-6.58l-.38-.21a.5.5 0 01.48-.88zm-1.17 2.68a.5.5 0 01.6-.2l.09.03.12.08a6.5 6.5 0 013.02 4.23l.05.27.04.27a.5.5 0 01-.96.25l-.02-.09-.05-.26a5.5 5.5 0 00-2.37-3.67l-.22-.15-.13-.07a.5.5 0 01-.17-.69z"
-                fill-rule="nonzero"
-                data-astro-cid-gvpn4u4b=""
-              ></path>
-            </SvgIcon>
-          </IconButtonStyled>
-
-          <TopicTitle variant="h6">
-            {questionTopic()} ({difficulty})
-          </TopicTitle>
-          <Typography variant="h4" gutterBottom>
-            {questionTitle()}
-          </Typography>
-          {showHint() && (
-            <HintBox>
-              <Typography>{question.hint}</Typography>
-            </HintBox>
-          )}
-        </Header>
+        <QuestionHeader
+          difficulty={props.difficulty}
+          topic={props.topic}
+          hint={props.question.hint}
+          title={title()}
+          showHint={showHint()}
+          onSpeak={speak}
+        />
       )}
       {!showResult() && (
         <>
           <AnswerGrid>
-            <For each={question.answers}>
+            <For each={props.question.answers}>
               {(answer, index) => (
-                <Button
+                <AnswerButton
                   variant={selectedAnswerIndex() === index() ? "contained" : "outlined"}
                   color="primary"
                   onClick={() => setSelectedAnswerIndex(index())}
-                  disabled={showResult()}
-                  sx={{ fontSize: "16px", padding: "16px", textTransform: "capitalize" }}
                 >
                   {answer.answer}
-                </Button>
+                </AnswerButton>
               )}
             </For>
           </AnswerGrid>
           <ButtonContainer>
-            <Button variant="contained" color="primary" onClick={onBack}>
+            <Button variant="contained" color="primary" onClick={props.onBack}>
               Back
             </Button>
             <Button
@@ -226,9 +202,9 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
           <ResultText correct={selectedAnswer().correct} variant="h6">
             {selectedAnswer().correct ? "Correct!" : "Incorrect. Try again!"}
           </ResultText>
-          <Typography>{question.explanation}</Typography>
+          <Typography>{props.question.explanation}</Typography>
           <ButtonContainer>
-            <Button variant="contained" color="primary" onClick={onBack}>
+            <Button variant="contained" color="primary" onClick={props.onBack}>
               Back
             </Button>
             <Button
@@ -236,11 +212,11 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
               variant="contained"
               color="primary"
               onClick={() => {
-                onNext({
-                  topic: topic,
-                  question: question.question,
+                props.onNext({
+                  topic: props.topic,
+                  question: props.question.question,
                   userAnswer: selectedAnswer().answer,
-                  correctAnswer: question.answers.find((a) => a.correct)!.answer,
+                  correctAnswer: props.question.answers.find((a) => a.correct)!.answer,
                   points: selectedAnswer().points,
                   correct: selectedAnswer().correct,
                 });

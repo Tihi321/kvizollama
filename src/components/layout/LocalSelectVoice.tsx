@@ -79,8 +79,7 @@ export const LocalSelectVoice = () => {
           variant="contained"
           color="primary"
           onClick={() => {
-            const voice = getStringValue("selectedVoice");
-            saveStringValue("selectedVoice", voice || "");
+            saveStringValue("selectedVoice", selectedVoice());
           }}
         >
           Save

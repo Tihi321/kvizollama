@@ -28,6 +28,24 @@ const Container = styled("div")`
   min-height: 100vh;
 `;
 
+const MenuContainer = styled("div")`
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Menu = styled("div")`
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
 const MenuButton = styled(Button)`
   width: 300px;
 `;
@@ -121,46 +139,43 @@ export const App = () => {
     <Container>
       <Header />
       <Show when={showStart()}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-            gap: 2,
-            flex: 1,
-          }}
-        >
+        <MenuContainer>
           {selectedQuiz() && (
             <TitleScreen
               title={selectedQuiz()?.name || ""}
               difficulty={selectedQuiz()?.difficulty || ""}
             />
           )}
-          <MenuButton
-            onClick={() => setQuizStarted(true)}
-            variant="contained"
-            color="primary"
-            disabled={isEmpty(selectedQuiz())}
-          >
-            Start
-          </MenuButton>
-          <MenuButton onClick={() => setShowSettingsQuiz(true)} variant="contained" color="primary">
-            Settings
-          </MenuButton>
-          <MenuButton onClick={() => setShowLoadQuiz(true)} variant="contained" color="primary">
-            Load quiz
-          </MenuButton>
-          <MenuButton onClick={() => setShowSaveQuiz(true)} variant="contained" color="primary">
-            Save quiz
-          </MenuButton>
-          <MenuButton onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
-            Generate quiz
-          </MenuButton>
-          <MenuButton onClick={() => setAboutQuiz(true)} variant="contained" color="primary">
-            About
-          </MenuButton>
-        </Box>
+          <Menu>
+            <MenuButton
+              onClick={() => setQuizStarted(true)}
+              variant="contained"
+              color="primary"
+              disabled={isEmpty(selectedQuiz())}
+            >
+              Start
+            </MenuButton>
+            <MenuButton
+              onClick={() => setShowSettingsQuiz(true)}
+              variant="contained"
+              color="primary"
+            >
+              Settings
+            </MenuButton>
+            <MenuButton onClick={() => setShowLoadQuiz(true)} variant="contained" color="primary">
+              Load quiz
+            </MenuButton>
+            <MenuButton onClick={() => setShowSaveQuiz(true)} variant="contained" color="primary">
+              Save quiz
+            </MenuButton>
+            <MenuButton onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
+              Generate quiz
+            </MenuButton>
+            <MenuButton onClick={() => setAboutQuiz(true)} variant="contained" color="primary">
+              About
+            </MenuButton>
+          </Menu>
+        </MenuContainer>
       </Show>
       <Show when={loading()}>
         <Box

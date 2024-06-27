@@ -1,6 +1,7 @@
 import { Component } from "solid-js";
 import { Button, Box } from "@suid/material";
 import { Container } from "../layout/Container";
+import { Back } from "../icons/Back";
 
 interface QuizAboutmProps {
   systemPrompt: string;
@@ -65,8 +66,8 @@ export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) 
             Copy User Input Format
           </Button>
         </Box>
-        <Button onClick={onBack} variant="contained" color="primary">
-          Back
+        <Button onClick={onBack} variant="contained" color="info">
+          <Back />
         </Button>
       </Box>
     </Container>

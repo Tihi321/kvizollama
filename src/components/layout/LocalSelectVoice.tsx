@@ -4,6 +4,8 @@ import { isEmpty, map } from "lodash";
 import { styled } from "solid-styled-components";
 import { getStringValue, saveStringValue } from "../../hooks/local";
 import { getVoices } from "../../utils";
+import { Save } from "../icons/Save";
+import { Refresh } from "../icons/Refresh";
 
 const MenuItemStyled = styled(MenuItem)`
   display: flex;
@@ -14,10 +16,14 @@ const MenuItemStyled = styled(MenuItem)`
 `;
 
 const MenuTitle = styled("div")`
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: 14px;
   margin: 10px;
   flex: 1;
+  word-break: break-all;
+
+  @media (min-width: 700px) {
+    font-size: 18px;
+  }
 `;
 
 export const LocalSelectVoice = () => {
@@ -79,10 +85,21 @@ export const LocalSelectVoice = () => {
           variant="contained"
           color="primary"
           onClick={() => {
+            const voices = getVoices();
+            setAvailableVoices(voices);
+          }}
+        >
+          <Refresh />
+        </Button>
+        <Button
+          disabled={isEmpty(availableVoices())}
+          variant="contained"
+          color="primary"
+          onClick={() => {
             saveStringValue("selectedVoice", selectedVoice());
           }}
         >
-          Save
+          <Save />
         </Button>
       </Box>
     </Box>

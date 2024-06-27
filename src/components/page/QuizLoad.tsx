@@ -6,13 +6,10 @@ import { CdnQuizInfo, CustomQuizInfo, QuizInfo } from "../../types";
 import { getCustomQuizes, getLocalQuizes, removeLocalQuiz } from "../../hooks/local";
 import { map } from "lodash";
 import { Container } from "../layout/Container";
-
-const MenuTitle = styled("div")`
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin: 10px;
-  flex: 1;
-`;
+import { Trashcan } from "../icons/Trashcan";
+import { Export } from "../icons/Export";
+import { Load } from "../icons/Load";
+import { Back } from "../icons/Back";
 
 const MenuItemStyled = styled(MenuItem)`
   display: flex;
@@ -20,6 +17,34 @@ const MenuItemStyled = styled(MenuItem)`
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
+`;
+
+const MenuTitle = styled("div")`
+  font-size: 14px;
+  margin: 10px;
+  word-break: break-all;
+  flex: 1;
+
+  @media (min-width: 700px) {
+    font-size: 18px;
+  }
+`;
+
+const ButtonsContainer = styled("div")<{ large: boolean }>`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: ${(props) => (props?.large ? "100%" : "80px")};
+
+  @media (min-width: 700px) {
+    width: ${(props) => (props?.large ? "220px" : "80px")};
+  }
+`;
+
+const ButtonElement = styled(Button)`
+  flex: 1;
+  text-align: center;
 `;
 
 interface QuizLoadProps {
@@ -69,15 +94,17 @@ export const QuizLoad: Component<QuizLoadProps> = ({
             {map(cdnQuizes, (values: CdnQuizInfo) => (
               <MenuItemStyled>
                 <MenuTitle>{values.name}</MenuTitle>
-                <Button
-                  onClick={() => {
-                    onFetchCDNLoad(values.path, values.name);
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Load
-                </Button>
+                <ButtonsContainer large={false}>
+                  <ButtonElement
+                    onClick={() => {
+                      onFetchCDNLoad(values.path, values.name);
+                    }}
+                    variant="contained"
+                    color="primary"
+                  >
+                    <Load />
+                  </ButtonElement>
+                </ButtonsContainer>
               </MenuItemStyled>
             ))}
           </Select>
@@ -88,34 +115,36 @@ export const QuizLoad: Component<QuizLoadProps> = ({
             {map(customQuizes(), (values: CustomQuizInfo) => (
               <MenuItemStyled>
                 <MenuTitle>{values.name}</MenuTitle>
-                <Button
-                  onClick={() => {
-                    onFetchLoad(values.url, values.name);
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Load
-                </Button>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(JSON.stringify(values.url));
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Export
-                </Button>
-                <Button
-                  onClick={() => {
-                    const localQuizes = removeLocalQuiz(values.name);
-                    setLocalQuizes(localQuizes);
-                  }}
-                  variant="contained"
-                  color="secondary"
-                >
-                  Remove
-                </Button>
+                <ButtonsContainer large={true}>
+                  <ButtonElement
+                    onClick={() => {
+                      onFetchLoad(values.url, values.name);
+                    }}
+                    variant="contained"
+                    color="primary"
+                  >
+                    <Load />
+                  </ButtonElement>
+                  <ButtonElement
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(values.url));
+                    }}
+                    variant="contained"
+                    color="secondary"
+                  >
+                    <Export />
+                  </ButtonElement>
+                  <ButtonElement
+                    onClick={() => {
+                      const localQuizes = removeLocalQuiz(values.name);
+                      setLocalQuizes(localQuizes);
+                    }}
+                    variant="contained"
+                    color="error"
+                  >
+                    <Trashcan />
+                  </ButtonElement>
+                </ButtonsContainer>
               </MenuItemStyled>
             ))}
           </Select>
@@ -126,34 +155,36 @@ export const QuizLoad: Component<QuizLoadProps> = ({
             {map(localQuizes(), (values: QuizInfo) => (
               <MenuItemStyled>
                 <MenuTitle>{values.name}</MenuTitle>
-                <Button
-                  onClick={() => {
-                    onLoad(values);
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Load
-                </Button>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(JSON.stringify(values.data));
-                  }}
-                  variant="contained"
-                  color="primary"
-                >
-                  Export
-                </Button>
-                <Button
-                  onClick={() => {
-                    const localQuizes = removeLocalQuiz(values.name);
-                    setLocalQuizes(localQuizes);
-                  }}
-                  variant="contained"
-                  color="secondary"
-                >
-                  Remove
-                </Button>
+                <ButtonsContainer large={true}>
+                  <ButtonElement
+                    onClick={() => {
+                      onLoad(values);
+                    }}
+                    variant="contained"
+                    color="primary"
+                  >
+                    <Load />
+                  </ButtonElement>
+                  <ButtonElement
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(values.data));
+                    }}
+                    variant="contained"
+                    color="secondary"
+                  >
+                    <Export />
+                  </ButtonElement>
+                  <ButtonElement
+                    onClick={() => {
+                      const localQuizes = removeLocalQuiz(values.name);
+                      setLocalQuizes(localQuizes);
+                    }}
+                    variant="contained"
+                    color="error"
+                  >
+                    <Trashcan />
+                  </ButtonElement>
+                </ButtonsContainer>
               </MenuItemStyled>
             ))}
           </Select>
@@ -165,41 +196,43 @@ export const QuizLoad: Component<QuizLoadProps> = ({
               {map(quizes, (values: QuizInfo) => (
                 <MenuItemStyled>
                   <MenuTitle>{values.name}</MenuTitle>
-                  <Button
-                    onClick={() => {
-                      onLoad(values);
-                    }}
-                    variant="contained"
-                    color="primary"
-                  >
-                    Load
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify(values.data));
-                    }}
-                    variant="contained"
-                    color="primary"
-                  >
-                    Export
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      emit("remove_quiz", values.name);
-                    }}
-                    variant="contained"
-                    color="secondary"
-                  >
-                    Remove
-                  </Button>
+                  <ButtonsContainer large={true}>
+                    <ButtonElement
+                      onClick={() => {
+                        onLoad(values);
+                      }}
+                      variant="contained"
+                      color="primary"
+                    >
+                      <Load />
+                    </ButtonElement>
+                    <ButtonElement
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(values.data));
+                      }}
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Export />
+                    </ButtonElement>
+                    <ButtonElement
+                      onClick={() => {
+                        emit("remove_quiz", values.name);
+                      }}
+                      variant="contained"
+                      color="error"
+                    >
+                      <Trashcan />
+                    </ButtonElement>
+                  </ButtonsContainer>
                 </MenuItemStyled>
               ))}
             </Select>
           </FormControl>
         )}
       </Box>
-      <Button onClick={onBack} variant="contained" color="primary">
-        Back
+      <Button onClick={onBack} variant="contained" color="info">
+        <Back />
       </Button>
     </Container>
   );

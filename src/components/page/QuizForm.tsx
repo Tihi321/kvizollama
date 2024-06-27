@@ -4,6 +4,7 @@ import { QuizFormData, QuizFormOptions } from "../../types";
 import { Container } from "../layout/Container";
 import { getStringValue } from "../../hooks/local";
 import { isEmpty } from "lodash";
+import { Back } from "../icons/Back";
 
 interface QuizFormProps {
   onGenerate: (formData: QuizFormData, options: QuizFormOptions) => void;
@@ -128,11 +129,11 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
             flex: 1,
           }}
         >
-          <Button disabled={disabled()} type="submit" variant="contained" color="primary">
-            Generate Quiz
+          <Button variant="contained" color="info" onClick={onBack}>
+            <Back />
           </Button>
-          <Button variant="contained" color="primary" onClick={onBack}>
-            Cancel
+          <Button disabled={disabled()} type="submit" variant="contained" color="primary">
+            Generate
           </Button>
         </Box>
       </form>

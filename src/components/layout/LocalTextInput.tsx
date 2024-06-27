@@ -1,6 +1,8 @@
 import { Component, createEffect, createSignal } from "solid-js";
 import { Button, TextField, Box } from "@suid/material";
 import { isEmpty } from "lodash";
+import { Trashcan } from "../icons/Trashcan";
+import { Save } from "../icons/Save";
 
 interface LocalTextInputProps {
   type: "text" | "password" | "number";
@@ -58,10 +60,10 @@ export const LocalTextInput: Component<LocalTextInputProps> = ({
           color="primary"
           onClick={() => onSave(text())}
         >
-          Save
+          <Save />
         </Button>
-        <Button variant="contained" color="primary" onClick={onRemove}>
-          Remove
+        <Button variant="contained" color="error" onClick={onRemove}>
+          <Trashcan />
         </Button>
       </Box>
     </Box>

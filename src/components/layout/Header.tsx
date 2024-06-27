@@ -1,23 +1,36 @@
 import { styled } from "solid-styled-components";
-import { Typography, IconButton, SvgIcon } from "@suid/material";
+import { IconButton } from "@suid/material";
 import { createEffect } from "solid-js";
+import { Speaker } from "../icons/Speaker";
 
 const StyledAppBar = styled("div")`
   position: relative;
   background-color: ${(props) => props?.theme?.colors.background};
   color: ${(props) => props?.theme?.colors.text};
   text-align: center;
-  padding: 8px;
+  padding: 16px;
   cursor: pointer;
 `;
 
 const IconButtonStyled = styled(IconButton)`
   position: absolute !important;
-  top: 20px;
-  right: 20px;
+  top: 15px;
+  right: 15px;
 
   svg {
     fill: ${(props) => props?.theme?.colors.text};
+  }
+`;
+
+const TitleText = styled("h3")`
+  color: ${(props) => props?.theme?.colors.text};
+  font-size: 24px;
+  line-height: 1;
+  margin: 0;
+
+  @media (min-width: 700px) {
+    margin-bottom: 10px;
+    font-size: 32px;
   }
 `;
 
@@ -33,9 +46,7 @@ export const Header = () => {
 
   return (
     <StyledAppBar>
-      <Typography variant="h3" component="div" sx={{ flexGrow: 1 }}>
-        Ollama Quiz
-      </Typography>
+      <TitleText>Ollama Quiz</TitleText>
       <IconButtonStyled
         aria-label="toggle volume"
         onClick={() => {
@@ -46,9 +57,7 @@ export const Header = () => {
           }
         }}
       >
-        <SvgIcon>
-          <path d="M11 5L6 9H2v6h4l5 4V5zm8.07-.07a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-        </SvgIcon>
+        <Speaker />
       </IconButtonStyled>
       <audio ref={audioElement}>
         <source src="https://start.tihomir-selak.from.hr/audio/just-relax.mp3" type="audio/mpeg" />

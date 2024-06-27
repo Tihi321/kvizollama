@@ -9,6 +9,7 @@ import {
 } from "../../hooks/local";
 import { LocalTextInput } from "../layout/LocalTextInput";
 import { LocalSelectVoice } from "../layout/LocalSelectVoice";
+import { Back } from "../icons/Back";
 
 interface QuizSettingsProps {
   onBack: () => void;
@@ -75,8 +76,8 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
         />
       </Show>
 
-      <Button variant="contained" color="primary" onClick={onBack}>
-        Back
+      <Button variant="contained" color="info" onClick={onBack}>
+        <Back />
       </Button>
     </Container>
   );

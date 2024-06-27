@@ -1,11 +1,13 @@
 import { Component, createSignal, For, createMemo, createEffect, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Button, Typography } from "@suid/material";
+import { Button } from "@suid/material";
 import { Question, QuizQuestionResponse } from "../../types";
 import { getVoice, getVoices } from "../../utils";
 import { getBooleanValue, getStringValue } from "../../hooks/local";
 import { isUndefined } from "lodash";
 import { QuestionHeader } from "../layout/QuestionHeader";
+import { Back } from "../icons/Back";
+import { Next } from "../icons/Next";
 
 const QuestionCard = styled.div`
   flex: 1;
@@ -57,11 +59,26 @@ const ResultContainer = styled("div")`
   flex: 1;
 `;
 
-const ResultText = styled(Typography)<{ correct: boolean }>`
+const ResultText = styled("h4")<{ correct: boolean }>`
   color: ${(props) =>
     props?.correct ? props?.theme?.colors.correct : props?.theme?.colors.incorrect};
   font-weight: bold;
   margin-bottom: 8px;
+  font-size: 24px;
+
+  @media (min-width: 700px) {
+    font-size: 32px;
+  }
+`;
+
+const ResultExplanation = styled("div")`
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 16px;
+
+  @media (min-width: 700px) {
+    font-size: 18px;
+  }
 `;
 
 interface QuizQuestionProps {
@@ -175,8 +192,8 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
             </For>
           </AnswerGrid>
           <ButtonContainer>
-            <Button variant="contained" color="primary" onClick={props.onBack}>
-              Back
+            <Button variant="contained" color="info" onClick={props.onBack}>
+              <Back />
             </Button>
             <Button
               variant="outlined"
@@ -192,22 +209,23 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
               onClick={handleSubmit}
               disabled={selectedAnswerIndex() === null || showResult()}
             >
-              Submit
+              <Next />
             </Button>
           </ButtonContainer>
         </>
       )}
       {showResult() && (
         <ResultContainer>
-          <ResultText correct={selectedAnswer().correct} variant="h6">
+          <ResultText correct={selectedAnswer().correct}>
             {selectedAnswer().correct ? "Correct!" : "Incorrect. Try again!"}
           </ResultText>
-          <Typography>{props.question.explanation}</Typography>
+          <ResultExplanation>{props.question.explanation}</ResultExplanation>
           <ButtonContainer>
-            <Button variant="contained" color="primary" onClick={props.onBack}>
-              Back
+            <Button size="large" variant="contained" color="info" onClick={props.onBack}>
+              <Back />
             </Button>
             <Button
+              size="large"
               component="button"
               variant="contained"
               color="primary"
@@ -222,7 +240,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
                 });
               }}
             >
-              Next
+              Next Question
             </Button>
           </ButtonContainer>
         </ResultContainer>

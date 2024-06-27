@@ -6,6 +6,7 @@ import { saveCustomQuiz, saveLocalQuiz } from "../../hooks/local";
 import { get, isEmpty, map } from "lodash";
 import { openFile } from "../../hooks/file";
 import { Container } from "../layout/Container";
+import { Back } from "../icons/Back";
 
 const FullWidthButton = styled(Button)`
   width: 100%;
@@ -114,8 +115,8 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
           </FullWidthButton>
         )}
       </Box>
-      <Button onClick={onBack} variant="contained" color="primary">
-        Back
+      <Button onClick={onBack} variant="contained" color="info">
+        <Back />
       </Button>
     </Container>
   );

@@ -1,24 +1,25 @@
 import { QuizFormData } from "../../types";
 import { formatLldRequest } from "./prompt";
 import { generateData, getHeaders } from "./requests";
-import { PERPLEXITY_ENDPOINT } from "./constants";
+import { OPEN_AI_ENDPOINTS } from "./constants";
 import { get } from "lodash";
 import { parseJsonFromString } from "../response";
 
-export const fetchPerplexityApi = async (
+export const fetchOpenAIApi = async (
   api: string,
   system: string,
-  data: QuizFormData
+  data: QuizFormData,
+  model: string = "gpt-3.5-turbo"
 ): Promise<any> => {
   try {
     const headers = getHeaders(api);
     const body = generateData(
       system,
       formatLldRequest(data.topics, data.difficulty, data.num_questions, data.max_points),
-      "llama-3-sonar-small-32k-chat"
+      model
     );
 
-    const response = await fetch(PERPLEXITY_ENDPOINT, {
+    const response = await fetch(OPEN_AI_ENDPOINTS, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
@@ -27,7 +28,6 @@ export const fetchPerplexityApi = async (
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
     const responseJson: any = await response.json();
 
     const result = get(responseJson, ["choices", 0, "message", "content"], "");

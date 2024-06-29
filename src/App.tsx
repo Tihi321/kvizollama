@@ -10,10 +10,10 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { QuizFormData, Topics, QuizInfo, QuizFormOptions, CdnQuizInfo } from "./types";
 import { QuizComponent } from "./components/page/QuizComponent";
 import { QuizForm } from "./components/page/QuizForm";
-import { get, isEmpty } from "lodash";
+import { isEmpty } from "lodash";
 import { isTauri } from "./utils/enviroment";
 import { QuizLoad } from "./components/page/QuizLoad";
-import { parseJsonFromString, parseResponseJson } from "./utils/response";
+import { parseResponseJson } from "./utils/response";
 import { QuizSave } from "./components/page/QuizSave";
 import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
@@ -27,6 +27,7 @@ import {
 } from "./utils";
 import { TitleScreen } from "./components/layout/TitleScreen";
 import { QuizAbout } from "./components/page/QuizAbout";
+import { fetchOpenAIApi } from "./utils/llms/chatGPT";
 
 const Container = styled("div")`
   display: flex;
@@ -122,14 +123,11 @@ export const App = () => {
 
     if (options.type === "perplexity") {
       fetchPerplexityApi(options.api || "", systemPrompt, formData).then((response) => {
-        const jsonRespnse = parseJsonFromString(
-          get(response, ["choices", 0, "message", "content"], "")
-        );
         if (isApp()) {
-          emit("save_quiz", { name: options.name, data: jsonRespnse });
+          emit("save_quiz", { name: options.name, data: response });
           setLoading(false);
         } else {
-          saveLocalQuiz(options.name, JSON.stringify(jsonRespnse));
+          saveLocalQuiz(options.name, JSON.stringify(response));
           setLoading(false);
         }
       });
@@ -137,16 +135,12 @@ export const App = () => {
     }
 
     if (options.type === "chatgpt") {
-      // implement chatgpt
-      fetchPerplexityApi(options.api || "", systemPrompt, formData).then((response) => {
-        const jsonRespnse = parseJsonFromString(
-          get(response, ["choices", 0, "message", "content"], "")
-        );
+      fetchOpenAIApi(options.api || "", systemPrompt, formData, options.model).then((response) => {
         if (isApp()) {
-          emit("save_quiz", { name: options.name, data: jsonRespnse });
+          emit("save_quiz", { name: options.name, data: response });
           setLoading(false);
         } else {
-          saveLocalQuiz(options.name, JSON.stringify(jsonRespnse));
+          saveLocalQuiz(options.name, JSON.stringify(response));
           setLoading(false);
         }
       });

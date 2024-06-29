@@ -15,9 +15,10 @@ interface QuizFormProps {
 export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }) => {
   const [type, setType] = createSignal("");
   const [localModel, setLocalModel] = createSignal("qwen2:7b");
+  const [openAIModel, setOpenAIModel] = createSignal("gpt-3.5-turbo");
   const [name, setName] = createSignal("");
   const [topics, setTopics] = createSignal("");
-  const [difficulty, setDifficulty] = createSignal("easy");
+  const [difficulty, setDifficulty] = createSignal("normal");
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
   const [maxPointsPerQuestion, setMaxPointsPerQuestion] = createSignal(10);
   const [perplexityApi, setPerplexityApi] = createSignal("");
@@ -30,20 +31,17 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
     setChatGPTApi(chatGPTApi);
   });
 
-  const modeAPI = createMemo(() => {
-    return type() === "perplexity" ? perplexityApi() : chatGPTApi();
+  const modelData = createMemo(() => {
+    const api = type() === "perplexity" ? perplexityApi() : chatGPTApi();
+    const model = type() === "ollama" ? localModel() : openAIModel();
+    return {
+      api,
+      model,
+    };
   });
 
   const disabled = createMemo(() => {
-    return (
-      !type() ||
-      !localModel() ||
-      !name() ||
-      !topics() ||
-      !difficulty() ||
-      !questionsPerTopic() ||
-      !maxPointsPerQuestion()
-    );
+    return !type() || !name() || !topics() || !questionsPerTopic() || !maxPointsPerQuestion();
   });
 
   const handleSubmit = (event: Event) => {
@@ -61,7 +59,9 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
       max_points: maxPointsPerQuestion(),
     };
 
-    onGenerate(formData, { model: localModel(), name: name(), type: type(), api: modeAPI() });
+    const { model, api } = modelData();
+
+    onGenerate(formData, { model, name: name(), type: type(), api });
   };
 
   return (
@@ -88,6 +88,16 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
               <MenuItem value="qwen2:7b">Qwen2</MenuItem>
               <MenuItem value="llama3:8b">Llama3</MenuItem>
               <MenuItem value="mistral:7b">Mistral</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+        {type() === "chatgpt" && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Model</InputLabel>
+            <Select value={openAIModel()} onChange={(e) => setOpenAIModel(e.target.value)}>
+              <MenuItem value="gpt-4o">Gpt-4o</MenuItem>
+              <MenuItem value="gpt-4-turbo">Gpt-4-turbo</MenuItem>
+              <MenuItem value="gpt-3.5-turbo">Gpt-3.5-turbo</MenuItem>
             </Select>
           </FormControl>
         )}

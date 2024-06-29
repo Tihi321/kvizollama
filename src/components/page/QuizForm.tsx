@@ -21,10 +21,17 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
   const [maxPointsPerQuestion, setMaxPointsPerQuestion] = createSignal(10);
   const [perplexityApi, setPerplexityApi] = createSignal("");
+  const [chatGPTApi, setChatGPTApi] = createSignal("");
 
   onMount(() => {
-    const localQuizes = getStringValue("perplexityApi");
-    setPerplexityApi(localQuizes);
+    const perplexityApi = getStringValue("perplexityApi");
+    setPerplexityApi(perplexityApi);
+    const chatGPTApi = getStringValue("chatgptAPI");
+    setChatGPTApi(chatGPTApi);
+  });
+
+  const modeAPI = createMemo(() => {
+    return type() === "perplexity" ? perplexityApi() : chatGPTApi();
   });
 
   const disabled = createMemo(() => {
@@ -54,7 +61,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
       max_points: maxPointsPerQuestion(),
     };
 
-    onGenerate(formData, { model: localModel(), name: name(), type: type(), api: perplexityApi() });
+    onGenerate(formData, { model: localModel(), name: name(), type: type(), api: modeAPI() });
   };
 
   return (
@@ -68,6 +75,9 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
             </MenuItem>
             <MenuItem disabled={isEmpty(perplexityApi())} value="perplexity">
               Perplexity
+            </MenuItem>
+            <MenuItem disabled={isEmpty(chatGPTApi())} value="chatgpt">
+              ChatGPT
             </MenuItem>
           </Select>
         </FormControl>

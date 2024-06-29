@@ -65,6 +65,21 @@ export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) 
           >
             Copy User Input Format
           </Button>
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(`
+              ${systemPrompt}
+              ---
+              Topic: [TOPICS]
+              Maximum Difficulty: [MAX_DIFFICULTY]
+              Number of Questions per Topic: [NUM_QUESTIONS]
+              Maximum Total Points: [MAX_POINTS],`);
+            }}
+            variant="contained"
+            color="primary"
+          >
+            Copy Promt
+          </Button>
         </Box>
         <Button onClick={onBack} variant="contained" color="info">
           <Back />

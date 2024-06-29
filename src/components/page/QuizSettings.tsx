@@ -17,6 +17,7 @@ interface QuizSettingsProps {
 
 export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
   const [perplexityApi, setPerplexityApi] = createSignal("");
+  const [chatGPTApi, setChatGPTApi] = createSignal("");
   const [questionPerQuiz, setQuestionPerQuiz] = createSignal("");
   const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
@@ -24,8 +25,10 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
   onMount(() => {
     const numberOfQuestion = getStringValue("questionPerQuiz");
     setQuestionPerQuiz(numberOfQuestion || "10");
-    const localQuizes = getStringValue("perplexityApi");
-    setPerplexityApi(localQuizes);
+    const perplexityApi = getStringValue("perplexityApi");
+    setPerplexityApi(perplexityApi);
+    const chatGPTApi = getStringValue("chatgptAPI");
+    setChatGPTApi(chatGPTApi);
     const autoStartVoice = getBooleanValue("autostartvoice");
     setAutoStartVoice(autoStartVoice);
     setMounted(true);
@@ -45,6 +48,19 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
           onRemove={() => {
             setPerplexityApi("");
             saveStringValue("perplexityApi", "");
+          }}
+        />
+        <LocalTextInput
+          type="password"
+          label="ChatGPT API"
+          value={chatGPTApi()}
+          onSave={(value) => {
+            saveStringValue("chatgptAPI", value);
+            setChatGPTApi(value);
+          }}
+          onRemove={() => {
+            setChatGPTApi("");
+            saveStringValue("chatgptAPI", "");
           }}
         />
         <LocalTextInput

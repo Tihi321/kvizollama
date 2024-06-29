@@ -136,6 +136,23 @@ export const App = () => {
       return;
     }
 
+    if (options.type === "chatgpt") {
+      // implement chatgpt
+      fetchPerplexityApi(options.api || "", systemPrompt, formData).then((response) => {
+        const jsonRespnse = parseJsonFromString(
+          get(response, ["choices", 0, "message", "content"], "")
+        );
+        if (isApp()) {
+          emit("save_quiz", { name: options.name, data: jsonRespnse });
+          setLoading(false);
+        } else {
+          saveLocalQuiz(options.name, JSON.stringify(jsonRespnse));
+          setLoading(false);
+        }
+      });
+      return;
+    }
+
     if (options.type === "ollama" && isApp()) {
       emit("generate_quiz", { formData, name: options.name, model: options.model });
       setGenerateQuiz(false);

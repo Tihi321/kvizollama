@@ -32,7 +32,7 @@ export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) 
           You can pass url to the app it will be loaded at the start of the app. Example url with:
           <br />
           <br />
-          ?quiz=https://cdn.tihomir-selak.from.hr/assets/api/ollama/quiz/perplexity/arts.json
+          ?quiz=https://cdn.tihomir-selak.from.hr/assets/api/ollama/quiz/perplexity/arts.json&title=Arts
         </p>
 
         <Box

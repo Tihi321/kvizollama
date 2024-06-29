@@ -18,7 +18,13 @@ import { QuizSave } from "./components/page/QuizSave";
 import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { saveLocalQuiz } from "./hooks/local";
-import { fetchCdnAvailableQuizes, getCdnQuiz, getCustomQuiz, getQuizmUrl } from "./utils";
+import {
+  fetchCdnAvailableQuizes,
+  getCdnQuiz,
+  getCustomQuiz,
+  getQuizTitle,
+  getQuizmUrl,
+} from "./utils";
 import { TitleScreen } from "./components/layout/TitleScreen";
 import { QuizAbout } from "./components/page/QuizAbout";
 
@@ -90,7 +96,8 @@ export const App = () => {
     if (customQuizUrl) {
       setShowLoadQuiz(false);
       setLoading(true);
-      getCustomQuiz(customQuizUrl, "custom").then((data) => {
+      const customQuizTitle = getQuizTitle();
+      getCustomQuiz(customQuizUrl, customQuizTitle || "custom").then((data) => {
         setSelectedQuiz(data);
         setLoading(false);
       });

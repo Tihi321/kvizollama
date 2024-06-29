@@ -15,7 +15,7 @@ const StyledAppBar = styled("div")`
 const IconButtonStyled = styled(IconButton)`
   position: absolute !important;
   top: 15px;
-  right: 15px;
+  left: 15px;
 
   svg {
     fill: ${(props) => props?.theme?.colors.text};

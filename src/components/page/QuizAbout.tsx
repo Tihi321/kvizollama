@@ -63,7 +63,7 @@ export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) 
             variant="contained"
             color="primary"
           >
-            Copy User Input Format
+            Copy User Prompt
           </Button>
           <Button
             onClick={() => {
@@ -78,7 +78,7 @@ export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) 
             variant="contained"
             color="primary"
           >
-            Copy Promt
+            Copy Full Prompt
           </Button>
         </Box>
         <Button onClick={onBack} variant="contained" color="info">

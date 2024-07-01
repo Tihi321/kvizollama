@@ -2,6 +2,7 @@ import { Component, For } from "solid-js";
 import { styled } from "solid-styled-components";
 import { Typography, Button } from "@suid/material";
 import { QuizQuestionResponse } from "../../types";
+import { useTranslations } from "../../hooks/translations";
 
 interface QuizSummaryProps {
   responses: QuizQuestionResponse[];
@@ -41,27 +42,29 @@ const SummaryTableHeaderCell = styled("th")`
 `;
 
 export const QuizSummary: Component<QuizSummaryProps> = (props) => {
+  const { getTranslation } = useTranslations();
+
   return (
     <SummaryCard>
       <Header>
         <Typography variant="h4" gutterBottom>
-          Quiz Summary
+          {getTranslation("summary")}
         </Typography>
         <Typography variant="h6" gutterBottom>
-          Total Points: {props.totalPoints}
+          {getTranslation("points")} {props.totalPoints}
         </Typography>
         <Button onClick={props.onSubmit} variant="contained" color="primary">
-          Finish
+          {getTranslation("finish")}
         </Button>
       </Header>
       <SummaryTable>
         <thead>
           <tr>
-            <SummaryTableHeaderCell>Topic</SummaryTableHeaderCell>
-            <SummaryTableHeaderCell>Question</SummaryTableHeaderCell>
-            <SummaryTableHeaderCell>Your Answer</SummaryTableHeaderCell>
-            <SummaryTableHeaderCell>Correct Answer</SummaryTableHeaderCell>
-            <SummaryTableHeaderCell>Points</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>{getTranslation("topic")}</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>{getTranslation("question")}</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>{getTranslation("answer")}r</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>{getTranslation("correct_answer")}</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>{getTranslation("points")}</SummaryTableHeaderCell>
           </tr>
         </thead>
         <tbody>

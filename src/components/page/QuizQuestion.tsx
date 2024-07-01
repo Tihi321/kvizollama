@@ -219,7 +219,9 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
       {showResult() && (
         <ResultContainer>
           <ResultText correct={selectedAnswer().correct}>
-            {selectedAnswer().correct ? "Correct!" : "Incorrect. Try again!"}
+            {selectedAnswer().correct
+              ? getTranslation("answered_correct")
+              : getTranslation("answered_incorrect")}
           </ResultText>
           <ResultExplanation>{props.question.explanation}</ResultExplanation>
           <ButtonContainer>

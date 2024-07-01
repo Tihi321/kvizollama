@@ -21,6 +21,7 @@
   "model": "Model",
   "local_model": "Local Model",
   "topics": "Topics (comma-separated)",
+  "topic": "Topic",
   "difficulty": "Difficulty",
   "easy": "Easy",
   "medium": "Medium",
@@ -33,5 +34,13 @@
   "about_params": "You can pass url to the app it will be loaded at the start of the app. Example url with:",
   "copy_system_prompt": "Copy System Prompt",
   "copy_user_prompt": "Copy User Prompt",
-  "copy_full_prompt": "Copy Full Prompt"
+  "copy_full_prompt": "Copy Full Prompt",
+  "summary": "Quiz Summary",
+  "points": "Points",
+  "finish": "Finish",
+  "question": "Question",
+  "answer": "Answer",
+  "correct_answer": "Correct Answer",
+  "answered_correct": "Correct!",
+  "answered_incorrect": "Incorrect. Try again!"
 }

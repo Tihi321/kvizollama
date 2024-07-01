@@ -21,6 +21,7 @@
   "model": "Model",
   "local_model": "Lokalni model",
   "topics": "Teme (odvojene zarezom)",
+  "topic": "Tema",
   "difficulty": "Težina",
   "easy": "Lako",
   "medium": "Srednje",
@@ -33,5 +34,13 @@
   "about_params": "Možete proslijediti URL aplikaciji koji će se učitati na početku aplikacije. Primjer URL-a s:",
   "copy_system_prompt": "Kopiraj sistemski upit",
   "copy_user_prompt": "Kopiraj korisnički upit",
-  "copy_full_prompt": "Kopiraj cijeli upit"
+  "copy_full_prompt": "Kopiraj cijeli upit",
+  "summary": "Sažetak kviza",
+  "points": "Bodovi",
+  "finish": "Završi",
+  "question": "Pitanje",
+  "answer": "Odgovor",
+  "correct_answer": "Točan odgovor",
+  "answered_correct": "Točno!",
+  "answered_incorrect": "Netočno. Pokušajte ponovno!"
 }

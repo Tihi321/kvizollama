@@ -7,7 +7,6 @@ export const getBooleanValue = (name: string): boolean => {
 };
 
 export const saveBooleanValue = (name: string, value: boolean) => {
-  console.log(value);
   localStorage.setItem(name, value ? "true" : "false");
 };
 

@@ -148,7 +148,6 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
     stopSpeaking();
     setSelectedAnswerIndex(null);
     setShowHint(false);
-    setShowResult(false);
 
     if (autoStartVoice() && speaker && props.title) {
       speaker.text = props.title;
@@ -158,7 +157,10 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
     setTitle(props.title);
   });
 
-  const selectedAnswer = createMemo(() => props.question.answers[selectedAnswerIndex()!]);
+  const selectedAnswer = createMemo(() => {
+    const answer = props.question.answers[selectedAnswerIndex()!];
+    return answer;
+  });
 
   const handleSubmit = () => {
     stopSpeaking();
@@ -225,7 +227,15 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
           </ResultText>
           <ResultExplanation>{props.question.explanation}</ResultExplanation>
           <ButtonContainer>
-            <Button size="large" variant="contained" color="info" onClick={props.onBack}>
+            <Button
+              size="large"
+              variant="contained"
+              color="info"
+              onClick={() => {
+                props.onBack();
+                setShowResult(false);
+              }}
+            >
               <Back />
             </Button>
             <Button
@@ -242,6 +252,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
                   points: selectedAnswer().points,
                   correct: selectedAnswer().correct,
                 });
+                setShowResult(false);
               }}
             >
               {getTranslation("next_question")}

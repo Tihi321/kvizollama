@@ -1,6 +1,7 @@
 import { Component } from "solid-js";
 import { styled } from "solid-styled-components";
 import { useTranslations } from "../../hooks/translations";
+import { getDifficultyTranslationString } from "../../utils/translations";
 
 const TitleScreenContainer = styled("div")`
   background-color: ${(props) => props?.theme?.colors.darkBackground};
@@ -51,25 +52,10 @@ interface TitleScreenProps {
 export const TitleScreen: Component<TitleScreenProps> = ({ title, difficulty }) => {
   const { getTranslation } = useTranslations();
 
-  const getDifficulty = () => {
-    switch (difficulty) {
-      case "easy":
-      case "Easy":
-        return getTranslation("easy");
-      case "normal":
-      case "Normal":
-        return getTranslation("medium");
-      case "hard":
-      case "Hard":
-        return getTranslation("hard");
-      default:
-        return "";
-    }
-  };
   return (
     <TitleScreenContainer>
       <TitleText>{title}</TitleText>
-      <DifficultyText>{getDifficulty()}</DifficultyText>
+      <DifficultyText>{getTranslation(getDifficultyTranslationString(difficulty))}</DifficultyText>
     </TitleScreenContainer>
   );
 };

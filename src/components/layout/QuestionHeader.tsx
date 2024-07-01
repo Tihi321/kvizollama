@@ -2,6 +2,8 @@ import { Component } from "solid-js";
 import { styled } from "solid-styled-components";
 import { Typography, IconButton } from "@suid/material";
 import { Echo } from "../icons/Echo";
+import { useTranslations } from "../../hooks/translations";
+import { getDifficultyTranslationString } from "../../utils/translations";
 
 const Header = styled.div`
   display: flex;
@@ -44,7 +46,7 @@ const Title = styled("h4")`
 const HintBox = styled("div")`
   background-color: ${(props) => props?.theme?.colors.hint};
   padding: 16px;
-  margin-bottom: 16px;
+  margin: 16px 0;
   border-radius: 4px;
 `;
 
@@ -58,6 +60,7 @@ interface QuestionHeaderProps {
 }
 
 export const QuestionHeader: Component<QuestionHeaderProps> = (props) => {
+  const { getTranslation } = useTranslations();
   return (
     <Header>
       <IconButtonStyled aria-label="toggle volume" onClick={props.onSpeak}>
@@ -65,7 +68,7 @@ export const QuestionHeader: Component<QuestionHeaderProps> = (props) => {
       </IconButtonStyled>
 
       <TopicTitle>
-        {props.topic} ({props.difficulty})
+        {props.topic} ({getTranslation(getDifficultyTranslationString(props.difficulty))})
       </TopicTitle>
       <Title>{props.title}</Title>
       {props.showHint && (

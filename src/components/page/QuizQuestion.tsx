@@ -232,8 +232,8 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
               variant="contained"
               color="info"
               onClick={() => {
-                props.onBack();
                 setShowResult(false);
+                props.onBack();
               }}
             >
               <Back />
@@ -244,6 +244,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
               variant="contained"
               color="primary"
               onClick={() => {
+                setShowResult(false);
                 props.onNext({
                   topic: props.topic,
                   question: props.question.question,
@@ -252,7 +253,6 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
                   points: selectedAnswer().points,
                   correct: selectedAnswer().correct,
                 });
-                setShowResult(false);
               }}
             >
               {getTranslation("next_question")}

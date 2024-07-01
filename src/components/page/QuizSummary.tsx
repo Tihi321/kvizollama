@@ -62,7 +62,7 @@ export const QuizSummary: Component<QuizSummaryProps> = (props) => {
           <tr>
             <SummaryTableHeaderCell>{getTranslation("topic")}</SummaryTableHeaderCell>
             <SummaryTableHeaderCell>{getTranslation("question")}</SummaryTableHeaderCell>
-            <SummaryTableHeaderCell>{getTranslation("answer")}r</SummaryTableHeaderCell>
+            <SummaryTableHeaderCell>{getTranslation("answer")}</SummaryTableHeaderCell>
             <SummaryTableHeaderCell>{getTranslation("correct_answer")}</SummaryTableHeaderCell>
             <SummaryTableHeaderCell>{getTranslation("points")}</SummaryTableHeaderCell>
           </tr>

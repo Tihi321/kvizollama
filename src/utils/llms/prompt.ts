@@ -1,3 +1,5 @@
+import { capitalize } from "lodash";
+
 export const formatLldRequest = (
   topics: string[],
   difficulty: string,
@@ -8,4 +10,8 @@ export const formatLldRequest = (
   Maximum Difficulty: [${difficulty}]\n\
   Number of Questions per Topic: [${numQuestions}]\n\
   Maximum Total Points: [${maxPoints}]`;
+};
+
+export const getFormattedSystemPrompt = (systemPrompt: string, language: string): string => {
+  return `${systemPrompt}Give me a JSON response in ${capitalize(language)} language.`;
 };

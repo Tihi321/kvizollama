@@ -6,6 +6,7 @@ import { getStringValue, saveStringValue } from "../../hooks/local";
 import { getVoices } from "../../utils";
 import { Save } from "../icons/Save";
 import { Refresh } from "../icons/Refresh";
+import { useTranslations } from "../../hooks/translations";
 
 const MenuItemStyled = styled(MenuItem)`
   display: flex;
@@ -30,6 +31,7 @@ export const LocalSelectVoice = () => {
   const [selectedVoice, setSelectedVoice] = createSignal("");
   const [mounted, setMounted] = createSignal(false);
   const [availableVoices, setAvailableVoices] = createSignal<SpeechSynthesisVoice[]>([]);
+  const { getTranslation } = useTranslations();
 
   onMount(() => {
     const voice = getStringValue("selectedVoice");
@@ -56,7 +58,7 @@ export const LocalSelectVoice = () => {
       }}
     >
       <FormControl fullWidth margin="normal">
-        <InputLabel>Voices</InputLabel>
+        <InputLabel>{getTranslation("voices")}</InputLabel>
         <Select
           value={selectedVoice()}
           onChange={(event) => {

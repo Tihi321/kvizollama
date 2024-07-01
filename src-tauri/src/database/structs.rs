@@ -31,6 +31,7 @@ pub struct QuizInfo {
 
 #[derive(Deserialize)]
 pub struct QuizQuestionRequest {
+    pub language: String,
     pub model: String,
     pub name: String,
     pub topics: Vec<String>,

@@ -5,6 +5,7 @@ import { Container } from "../layout/Container";
 import { getStringValue } from "../../hooks/local";
 import { isEmpty } from "lodash";
 import { Back } from "../icons/Back";
+import { useTranslations } from "../../hooks/translations";
 
 interface QuizFormProps {
   onGenerate: (formData: QuizFormData, options: QuizFormOptions) => void;
@@ -23,6 +24,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
   const [maxPointsPerQuestion, setMaxPointsPerQuestion] = createSignal(10);
   const [perplexityApi, setPerplexityApi] = createSignal("");
   const [chatGPTApi, setChatGPTApi] = createSignal("");
+  const { getTranslation } = useTranslations();
 
   onMount(() => {
     const perplexityApi = getStringValue("perplexityApi");
@@ -68,7 +70,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
     <Container>
       <form onSubmit={handleSubmit}>
         <FormControl fullWidth margin="normal">
-          <InputLabel>Model</InputLabel>
+          <InputLabel>{getTranslation("model")}</InputLabel>
           <Select value={type()} onChange={(e) => setType(e.target.value)}>
             <MenuItem disabled={!isApp} value="ollama">
               Ollama
@@ -83,9 +85,10 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
         </FormControl>
         {type() === "ollama" && (
           <FormControl fullWidth margin="normal">
-            <InputLabel>Local model</InputLabel>
+            <InputLabel>{getTranslation("local_model")}</InputLabel>
             <Select value={localModel()} onChange={(e) => setLocalModel(e.target.value)}>
               <MenuItem value="qwen2:7b">Qwen2</MenuItem>
+              <MenuItem value="gemma2:9b">Gemma2</MenuItem>
               <MenuItem value="llama3:8b">Llama3</MenuItem>
               <MenuItem value="mistral:7b">Mistral</MenuItem>
             </Select>
@@ -93,7 +96,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
         )}
         {type() === "chatgpt" && (
           <FormControl fullWidth margin="normal">
-            <InputLabel>Model</InputLabel>
+            <InputLabel>{getTranslation("model")}</InputLabel>
             <Select value={openAIModel()} onChange={(e) => setOpenAIModel(e.target.value)}>
               <MenuItem value="gpt-4o">Gpt-4o</MenuItem>
               <MenuItem value="gpt-4-turbo">Gpt-4-turbo</MenuItem>
@@ -103,30 +106,30 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
         )}
         <TextField
           fullWidth
-          label="Name of the quiz"
+          label={getTranslation("quiz_name")}
           value={name()}
           onChange={(e) => setName(e.target.value)}
           margin="normal"
         />
         <TextField
           fullWidth
-          label="Topics (comma-separated)"
+          label={getTranslation("topics")}
           value={topics()}
           onChange={(e) => setTopics(e.target.value)}
           margin="normal"
         />
         <FormControl fullWidth margin="normal">
-          <InputLabel>Difficulty</InputLabel>
+          <InputLabel>{getTranslation("difficulty")}</InputLabel>
           <Select value={difficulty()} onChange={(e) => setDifficulty(e.target.value)}>
-            <MenuItem value="easy">Easy</MenuItem>
-            <MenuItem value="normal">Normal</MenuItem>
-            <MenuItem value="hard">Hard</MenuItem>
+            <MenuItem value="easy">{getTranslation("easy")}</MenuItem>
+            <MenuItem value="normal">{getTranslation("medium")}</MenuItem>
+            <MenuItem value="hard">{getTranslation("hard")}</MenuItem>
           </Select>
         </FormControl>
         <TextField
           fullWidth
           type="number"
-          label="Number of questions per topic"
+          label={getTranslation("questions_per_topic")}
           value={questionsPerTopic()}
           onChange={(e) => setQuestionsPerTopic(parseInt(e.target.value))}
           margin="normal"
@@ -134,7 +137,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
         <TextField
           fullWidth
           type="number"
-          label="Maximum points per question"
+          label={getTranslation("points_per_question")}
           value={maxPointsPerQuestion()}
           onChange={(e) => setMaxPointsPerQuestion(parseInt(e.target.value))}
           margin="normal"
@@ -153,7 +156,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
             <Back />
           </Button>
           <Button disabled={disabled()} type="submit" variant="contained" color="primary">
-            Generate
+            {getTranslation("generate")}
           </Button>
         </Box>
       </form>

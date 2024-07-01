@@ -8,6 +8,7 @@ import { isUndefined } from "lodash";
 import { QuestionHeader } from "../layout/QuestionHeader";
 import { Back } from "../icons/Back";
 import { Next } from "../icons/Next";
+import { useTranslations } from "../../hooks/translations";
 
 const QuestionCard = styled.div`
   flex: 1;
@@ -100,6 +101,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
   const [selectedVoice, setSelectedVoice] = createSignal<string>();
   const [availableVoices, setAvailableVoices] = createSignal<SpeechSynthesisVoice[]>([]);
   let speaker: SpeechSynthesisUtterance | null = null;
+  const { getTranslation } = useTranslations();
 
   onMount(() => {
     speaker = new SpeechSynthesisUtterance();
@@ -201,7 +203,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
               onClick={() => setShowHint(true)}
               disabled={showHint() || showResult()}
             >
-              Show Hint
+              {getTranslation("show_hint")}
             </Button>
             <Button
               variant="contained"
@@ -240,7 +242,7 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
                 });
               }}
             >
-              Next Question
+              {getTranslation("next_question")}
             </Button>
           </ButtonContainer>
         </ResultContainer>

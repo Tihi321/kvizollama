@@ -2,7 +2,7 @@ import { Component } from "solid-js";
 import { styled } from "solid-styled-components";
 
 const TitleScreenContainer = styled("div")`
-  background-color: ${(props) => props?.theme?.colors.background};
+  background-color: ${(props) => props?.theme?.colors.darkBackground};
   font-weight: bold;
   padding: 20px;
   text-align: center;

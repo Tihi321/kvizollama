@@ -10,14 +10,14 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { QuizFormData, Topics, QuizInfo, QuizFormOptions, CdnQuizInfo } from "./types";
 import { QuizComponent } from "./components/page/QuizComponent";
 import { QuizForm } from "./components/page/QuizForm";
-import { isEmpty } from "lodash";
+import { capitalize, isEmpty } from "lodash";
 import { isTauri } from "./utils/enviroment";
 import { QuizLoad } from "./components/page/QuizLoad";
 import { parseResponseJson } from "./utils/response";
 import { QuizSave } from "./components/page/QuizSave";
 import { QuizSettings } from "./components/page/QuizSettings";
 import { fetchPerplexityApi } from "./utils/llms";
-import { saveLocalQuiz } from "./hooks/local";
+import { getStringValue, saveLocalQuiz } from "./hooks/local";
 import {
   fetchCdnAvailableQuizes,
   getCdnQuiz,
@@ -28,6 +28,8 @@ import {
 import { TitleScreen } from "./components/layout/TitleScreen";
 import { QuizAbout } from "./components/page/QuizAbout";
 import { fetchOpenAIApi } from "./utils/llms/chatGPT";
+import { getFormattedSystemPrompt } from "./utils/llms/prompt";
+import { useTranslations } from "./hooks/translations";
 
 const Container = styled("div")`
   display: flex;
@@ -70,6 +72,12 @@ export const App = () => {
   const [showSettingsQuiz, setShowSettingsQuiz] = createSignal(false);
   const [loading, setLoading] = createSignal(true);
   const [isApp, setIsApp] = createSignal(false);
+  const [language, setLanguage] = createSignal("");
+  const { getTranslation } = useTranslations();
+
+  const systemLanguagePrompt = createMemo(() => {
+    return getFormattedSystemPrompt(systemPrompt, language());
+  });
 
   const showStart = createMemo(
     () =>
@@ -83,6 +91,9 @@ export const App = () => {
   );
 
   onMount(async () => {
+    const quizLanguage = getStringValue("language");
+    setLanguage(quizLanguage || "english");
+
     const isApp = await isTauri();
     setIsApp(isApp);
     if (isApp) {
@@ -122,7 +133,7 @@ export const App = () => {
     setLoading(true);
 
     if (options.type === "perplexity") {
-      fetchPerplexityApi(options.api || "", systemPrompt, formData).then((response) => {
+      fetchPerplexityApi(options.api || "", systemLanguagePrompt(), formData).then((response) => {
         if (isApp()) {
           emit("save_quiz", { name: options.name, data: response });
           setLoading(false);
@@ -135,20 +146,27 @@ export const App = () => {
     }
 
     if (options.type === "chatgpt") {
-      fetchOpenAIApi(options.api || "", systemPrompt, formData, options.model).then((response) => {
-        if (isApp()) {
-          emit("save_quiz", { name: options.name, data: response });
-          setLoading(false);
-        } else {
-          saveLocalQuiz(options.name, JSON.stringify(response));
-          setLoading(false);
+      fetchOpenAIApi(options.api || "", systemLanguagePrompt(), formData, options.model).then(
+        (response) => {
+          if (isApp()) {
+            emit("save_quiz", { name: options.name, data: response });
+            setLoading(false);
+          } else {
+            saveLocalQuiz(options.name, JSON.stringify(response));
+            setLoading(false);
+          }
         }
-      });
+      );
       return;
     }
 
     if (options.type === "ollama" && isApp()) {
-      emit("generate_quiz", { formData, name: options.name, model: options.model });
+      emit("generate_quiz", {
+        ...formData,
+        name: options.name,
+        model: options.model,
+        language: capitalize(language()),
+      });
       setGenerateQuiz(false);
       return;
     }
@@ -172,26 +190,26 @@ export const App = () => {
               color="primary"
               disabled={isEmpty(selectedQuiz())}
             >
-              Start
+              {getTranslation("start_quiz")}
             </MenuButton>
             <MenuButton
               onClick={() => setShowSettingsQuiz(true)}
               variant="contained"
               color="primary"
             >
-              Settings
+              {getTranslation("settings")}
             </MenuButton>
             <MenuButton onClick={() => setShowLoadQuiz(true)} variant="contained" color="primary">
-              Load quiz
+              {getTranslation("load")}
             </MenuButton>
             <MenuButton onClick={() => setShowSaveQuiz(true)} variant="contained" color="primary">
-              Save quiz
+              {getTranslation("save")}
             </MenuButton>
             <MenuButton onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
-              Generate quiz
+              {getTranslation("generate")}
             </MenuButton>
             <MenuButton onClick={() => setAboutQuiz(true)} variant="contained" color="primary">
-              About
+              {getTranslation("about")}
             </MenuButton>
           </Menu>
         </MenuContainer>
@@ -257,7 +275,7 @@ export const App = () => {
         />
       </Show>
       <Show when={aboutQuiz()}>
-        <QuizAbout systemPrompt={systemPrompt} onBack={() => setAboutQuiz(false)} />
+        <QuizAbout systemPrompt={systemLanguagePrompt()} onBack={() => setAboutQuiz(false)} />
       </Show>
       <Footer />
     </Container>

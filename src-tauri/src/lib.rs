@@ -31,6 +31,7 @@ pub async fn run() {
                 let generate_quiz_handle_clone = generate_quiz_handle.clone();
                 match serde_json::from_str::<QuizQuestionRequest>(value) {
                     Ok(payload) => {
+                        let language = payload.language;
                         let model = payload.model;
                         let name = payload.name;
                         let topics = payload.topics;
@@ -40,6 +41,7 @@ pub async fn run() {
 
                         tokio::spawn(async move {
                             match generate_quiz_questions(
+                                &language,
                                 &model,
                                 &topics,
                                 &difficulty,

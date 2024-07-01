@@ -30,14 +30,14 @@ const SummaryTable = styled("table")`
 `;
 
 const SummaryTableCell = styled("td")`
-  border: 1px solid #ddd;
+  border: 1px solid ${(props) => props?.theme?.colors.border};
   padding: 8px;
 `;
 
 const SummaryTableHeaderCell = styled("th")`
-  border: 1px solid #ddd;
+  border: 1px solid ${(props) => props?.theme?.colors.border}
   padding: 8px;
-  background-color: #f2f2f2;
+  background-color: ${(props) => props?.theme?.colors.lightBackground};
 `;
 
 export const QuizSummary: Component<QuizSummaryProps> = (props) => {

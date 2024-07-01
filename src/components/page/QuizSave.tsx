@@ -7,6 +7,7 @@ import { get, isEmpty, map } from "lodash";
 import { openFile } from "../../hooks/file";
 import { Container } from "../layout/Container";
 import { Back } from "../icons/Back";
+import { useTranslations } from "../../hooks/translations";
 
 const FullWidthButton = styled(Button)`
   width: 100%;
@@ -22,6 +23,7 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
   const [localQuiz, setLocalQuiz] = createSignal("");
   const [customName, setCustomName] = createSignal("");
   const [customQuiz, setCustomQuiz] = createSignal("");
+  const { getTranslation } = useTranslations();
 
   const saveLocalQuizDisabled = createMemo(() => isEmpty(localName()) || isEmpty(localQuiz()));
   const savelCustomQuizDisabled = createMemo(() => isEmpty(customName()) || isEmpty(customQuiz()));
@@ -41,14 +43,14 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
         <Box>
           <TextField
             fullWidth
-            label="Name of the quiz"
+            label={getTranslation("quiz_name")}
             value={localName()}
             onChange={(e) => setLocalName(e.target.value)}
             margin="normal"
           />
           <TextField
             fullWidth
-            label="Quiz Data"
+            label={getTranslation("quiz_data")}
             value={localQuiz()}
             onChange={(e) => setLocalQuiz(e.target.value)}
             margin="normal"
@@ -64,20 +66,20 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
             disabled={saveLocalQuizDisabled()}
             sx={{ marginBottom: 4 }}
           >
-            Save to local Storage
+            {getTranslation("save_to_local_storage")}
           </FullWidthButton>
         </Box>
         <Box>
           <TextField
             fullWidth
-            label="Name of the quiz"
+            label={getTranslation("quiz_name")}
             value={customName()}
             onChange={(e) => setCustomName(e.target.value)}
             margin="normal"
           />
           <TextField
             fullWidth
-            label="Quiz Url"
+            label={getTranslation("quiz_url")}
             value={customQuiz()}
             onChange={(e) => setCustomQuiz(e.target.value)}
             margin="normal"
@@ -93,7 +95,7 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
             disabled={savelCustomQuizDisabled()}
             sx={{ marginBottom: 4 }}
           >
-            Save to local Storage
+            {getTranslation("save_to_local_storage")}
           </FullWidthButton>
         </Box>
         {isApp && (
@@ -111,7 +113,7 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
             variant="contained"
             color="primary"
           >
-            Import File to disk
+            {getTranslation("import_file")}
           </FullWidthButton>
         )}
       </Box>

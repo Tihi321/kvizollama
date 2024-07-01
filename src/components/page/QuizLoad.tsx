@@ -10,6 +10,7 @@ import { Trashcan } from "../icons/Trashcan";
 import { Export } from "../icons/Export";
 import { Load } from "../icons/Load";
 import { Back } from "../icons/Back";
+import { useTranslations } from "../../hooks/translations";
 
 const MenuItemStyled = styled(MenuItem)`
   display: flex;
@@ -68,6 +69,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
 }) => {
   const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
   const [customQuizes, setCustomQuizes] = createSignal<CustomQuizInfo[]>([]);
+  const { getTranslation } = useTranslations();
 
   onMount(() => {
     const localQuizes = getLocalQuizes();
@@ -89,7 +91,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
         }}
       >
         <FormControl fullWidth margin="normal">
-          <InputLabel>CDN</InputLabel>
+          <InputLabel>{getTranslation("cdn")}</InputLabel>
           <Select value={""} onChange={() => {}}>
             {map(cdnQuizes, (values: CdnQuizInfo) => (
               <MenuItemStyled>
@@ -110,7 +112,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal">
-          <InputLabel>Custom Quizes</InputLabel>
+          <InputLabel>{getTranslation("custom_quizes")}</InputLabel>
           <Select value={""} onChange={() => {}}>
             {map(customQuizes(), (values: CustomQuizInfo) => (
               <MenuItemStyled>
@@ -150,7 +152,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal">
-          <InputLabel>Local Storage</InputLabel>
+          <InputLabel>{getTranslation("local_storage")}</InputLabel>
           <Select value={""} onChange={() => {}}>
             {map(localQuizes(), (values: QuizInfo) => (
               <MenuItemStyled>
@@ -191,7 +193,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({
         </FormControl>
         {isApp && (
           <FormControl fullWidth margin="normal">
-            <InputLabel>Disk</InputLabel>
+            <InputLabel>{getTranslation("disk")}</InputLabel>
             <Select value={""} onChange={() => {}}>
               {map(quizes, (values: QuizInfo) => (
                 <MenuItemStyled>

@@ -10,6 +10,7 @@ import {
 import { LocalTextInput } from "../layout/LocalTextInput";
 import { LocalSelectVoice } from "../layout/LocalSelectVoice";
 import { Back } from "../icons/Back";
+import { useTranslations } from "../../hooks/translations";
 
 interface QuizSettingsProps {
   onBack: () => void;
@@ -21,6 +22,7 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
   const [questionPerQuiz, setQuestionPerQuiz] = createSignal("");
   const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
+  const { getTranslation } = useTranslations();
 
   onMount(() => {
     const numberOfQuestion = getStringValue("questionPerQuiz");
@@ -65,7 +67,7 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
         />
         <LocalTextInput
           type="number"
-          label="Questions per quiz"
+          label={getTranslation("questions_per_quiz")}
           value={questionPerQuiz()}
           onSave={(value) => {
             saveStringValue("questionPerQuiz", value);
@@ -88,7 +90,7 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
               }}
             />
           }
-          label="Autostart voice"
+          label={getTranslation("autostart_voice")}
         />
       </Show>
 

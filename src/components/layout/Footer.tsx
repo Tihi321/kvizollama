@@ -3,7 +3,7 @@ import { styled } from "solid-styled-components";
 // Footer Component
 const StyledFooter = styled("footer")`
   margin-top: auto;
-  background-color: ${(props) => props?.theme?.colors.background};
+  background-color: ${(props) => props?.theme?.colors.darkBackground};
   color: ${(props) => props?.theme?.colors.text};
   display: flex;
   flex-direction: row;
@@ -58,7 +58,7 @@ export const Footer = () => {
             Web: <a href="https://kobilica.hr">kobilica.hr</a>
           </div>
           <div>
-            News: <a href="https://star.kobilica.hr">star.kobilica.hr</a>
+            Star: <a href="https://star.kobilica.hr">star.kobilica.hr</a>
           </div>
         </Websites>
       </InfodFooter>

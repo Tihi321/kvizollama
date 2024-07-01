@@ -1,6 +1,6 @@
-## Ollama Quiz Readme: The Ultimate Quiz Generator
+## Kvizollama Readme: The Ultimate Quiz Generator
 
-Welcome to the world of interactive education with Ollama Quiz! This guide will take you through every step from installing and setting up your environment, creating quizzes tailored to various topics, configuring difficulty levels, and tracking user performance.
+Welcome to the world of interactive education with Kvizollama! This guide will take you through every step from installing and setting up your environment, creating quizzes tailored to various topics, configuring difficulty levels, and tracking user performance.
 
 <div align="center">
    <img alt="App" src="./assets/app.png" width="620" />
@@ -20,7 +20,7 @@ Welcome to the world of interactive education with Ollama Quiz! This guide will 
 
 🌟 **Compatibility**: Seamless integration with popular email services for distributing your quizzes.
 
-### How to Use Ollama Quiz:
+### How to Use Kvizollama:
 
 1. **Setup Your Quiz**: Choose a quiz topic, set the number of questions per topic, and define the difficulty level based on your target audience's familiarity with the subject.
 2. **Question Management**: Import or export lists of questions using various formats for organization and sharing.

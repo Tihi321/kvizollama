@@ -1,5 +1,5 @@
 [package]
-name = "quiz"
+name = "kvizollama"
 version = "0.0.0"
 description = "A Tauri Quiz App"
 authors = ["tihomir-selak"]

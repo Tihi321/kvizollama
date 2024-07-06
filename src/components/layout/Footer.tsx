@@ -57,9 +57,6 @@ export const Footer = () => {
           <div>
             Web: <a href="https://kobilica.hr">kobilica.hr</a>
           </div>
-          <div>
-            Star: <a href="https://star.kobilica.hr">star.kobilica.hr</a>
-          </div>
         </Websites>
       </InfodFooter>
 

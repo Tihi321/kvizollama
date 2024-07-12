@@ -1,26 +1,41 @@
 mod database;
 mod llm;
+mod server;
 mod utils;
 
+use std::thread;
+
 use database::{
-    disk::{add_quiz, get_quizes, import_quizes, remove_quiz},
+    disk::{
+        add_quiz, add_server_quiz, get_quiz_path, get_quizes, get_server_quizes, import_quizes,
+        remove_quiz, remove_server_quiz,
+    },
     structs::{QuizQuestionRequest, QuizQuestionSaveRequest, Topics},
 };
 use llm::requests::generate_quiz_questions;
 use serde_json::Error as SerdeError;
+use server::server::start_server;
 use tauri::Manager;
+use tokio;
 use utils::{constants::WINDOW_LABEL, index::create_window};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 #[tokio::main]
 pub async fn run() {
+    thread::spawn(move || {
+        start_server().unwrap();
+    });
+
     let _ = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             let app_handle = app.app_handle();
             let generate_quiz_handle = app_handle.clone();
             let get_quizes_handle = app_handle.clone();
+            let get_server_quizes_handle = app_handle.clone();
             let remove_quiz_handle = app_handle.clone();
+            let add_to_server_quizes = app_handle.clone();
+            let remove_server_quiz_handle = app_handle.clone();
             let import_quiz_handle = app_handle.clone();
             let save_quiz_handle = app_handle.clone();
 
@@ -118,6 +133,17 @@ pub async fn run() {
                 }
             });
 
+            app.listen_any("get_server_quizes", move |_| {
+                let quizes = get_server_quizes().expect("Failed to get quizes");
+                // Use the app_handle to get the window by its label
+                if let Some(window) = get_server_quizes_handle.get_webview_window(WINDOW_LABEL) {
+                    // Now you can interact with the window, e.g., emit an event back to it
+                    window
+                        .emit_to(WINDOW_LABEL, "server_quizes", quizes)
+                        .expect("Failed to emit event");
+                }
+            });
+
             app.listen_any("remove_quiz", move |event| {
                 let name = event.payload();
                 let clean_response = name.trim_start_matches('"').trim_end_matches('"');
@@ -128,6 +154,35 @@ pub async fn run() {
                     // Now you can interact with the window, e.g., emit an event back to it
                     window
                         .emit_to(WINDOW_LABEL, "quizes", quizes)
+                        .expect("Failed to emit event");
+                }
+            });
+
+            app.listen_any("remove_server_quiz", move |event| {
+                let name = event.payload();
+                let clean_response = name.trim_start_matches('"').trim_end_matches('"');
+                remove_server_quiz(clean_response).expect("Failed to remove quiz");
+                let quizes = get_server_quizes().expect("Failed to remove quizes");
+                // Use the app_handle to get the window by its label
+                if let Some(window) = remove_server_quiz_handle.get_webview_window(WINDOW_LABEL) {
+                    // Now you can interact with the window, e.g., emit an event back to it
+                    window
+                        .emit_to(WINDOW_LABEL, "server_quizes", quizes)
+                        .expect("Failed to emit event");
+                }
+            });
+
+            app.listen_any("add_to_server_quiz", move |event| {
+                let name = event.payload();
+                let clean_response = name.trim_start_matches('"').trim_end_matches('"');
+                let quiz_path = get_quiz_path(clean_response).expect("Failed to get quizes");
+                add_server_quiz(quiz_path).expect("Failed to remove quiz");
+                let quizes = get_server_quizes().expect("Failed to remove quizes");
+                // Use the app_handle to get the window by its label
+                if let Some(window) = add_to_server_quizes.get_webview_window(WINDOW_LABEL) {
+                    // Now you can interact with the window, e.g., emit an event back to it
+                    window
+                        .emit_to(WINDOW_LABEL, "server_quizes", quizes)
                         .expect("Failed to emit event");
                 }
             });

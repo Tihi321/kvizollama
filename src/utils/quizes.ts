@@ -20,8 +20,8 @@ const getTopDifficulty = (quizes: QuizInfo[]) => {
     if (difficulty !== "Hard") {
       if (quiz.difficulty === "Hard") {
         difficulty = "Hard";
-      } else if (quiz.difficulty === "Medium") {
-        difficulty = "Medium";
+      } else if (quiz.difficulty === "Normal") {
+        difficulty = "Normal";
       }
     }
   });

@@ -1,19 +1,19 @@
 import { Component, createMemo, createSignal, onMount } from "solid-js";
 import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Box } from "@suid/material";
-import { QuizFormData, QuizFormOptions } from "../../types";
+import { GenerateFormData, GenerateFormOptions } from "../../types";
 import { Container } from "../layout/Container";
 import { getStringValue } from "../../hooks/local";
 import { isEmpty } from "lodash";
 import { Back } from "../icons/Back";
 import { useTranslations } from "../../hooks/translations";
 
-interface QuizFormProps {
-  onGenerate: (formData: QuizFormData, options: QuizFormOptions) => void;
+interface GenerateFormProps {
+  onGenerate: (formData: GenerateFormData, options: GenerateFormOptions) => void;
   onBack: () => void;
   isApp: boolean;
 }
 
-export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }) => {
+export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack, isApp }) => {
   const [type, setType] = createSignal("");
   const [localModel, setLocalModel] = createSignal("qwen2:7b");
   const [openAIModel, setOpenAIModel] = createSignal("gpt-3.5-turbo");
@@ -52,7 +52,7 @@ export const QuizForm: Component<QuizFormProps> = ({ onGenerate, onBack, isApp }
       return;
     }
 
-    const formData: QuizFormData = {
+    const formData: GenerateFormData = {
       topics: topics()
         .split(",")
         .map((s) => s.trim()),

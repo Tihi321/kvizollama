@@ -1,4 +1,4 @@
-import { QuizFormData } from "../../types";
+import { GenerateFormData } from "../../types";
 import { formatLldRequest } from "./prompt";
 import { generateData, getHeaders } from "./requests";
 import { PERPLEXITY_ENDPOINT } from "./constants";
@@ -8,7 +8,7 @@ import { parseJsonFromString } from "../response";
 export const fetchPerplexityApi = async (
   api: string,
   system: string,
-  data: QuizFormData
+  data: GenerateFormData
 ): Promise<any> => {
   try {
     const headers = getHeaders(api);

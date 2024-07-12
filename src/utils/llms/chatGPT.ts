@@ -1,4 +1,4 @@
-import { QuizFormData } from "../../types";
+import { GenerateFormData } from "../../types";
 import { formatLldRequest } from "./prompt";
 import { generateData, getHeaders } from "./requests";
 import { OPEN_AI_ENDPOINTS } from "./constants";
@@ -8,7 +8,7 @@ import { parseJsonFromString } from "../response";
 export const fetchOpenAIApi = async (
   api: string,
   system: string,
-  data: QuizFormData,
+  data: GenerateFormData,
   model: string = "gpt-3.5-turbo"
 ): Promise<any> => {
   try {

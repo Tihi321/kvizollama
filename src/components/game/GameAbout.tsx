@@ -4,12 +4,12 @@ import { Container } from "../layout/Container";
 import { Back } from "../icons/Back";
 import { useTranslations } from "../../hooks/translations";
 
-interface QuizAboutmProps {
+interface GameAboutProps {
   systemPrompt: string;
   onBack: () => void;
 }
 
-export const QuizAbout: Component<QuizAboutmProps> = ({ systemPrompt, onBack }) => {
+export const GameAbout: Component<GameAboutProps> = ({ systemPrompt, onBack }) => {
   const { getTranslation } = useTranslations();
 
   return (

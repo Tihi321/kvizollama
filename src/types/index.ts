@@ -44,14 +44,14 @@ export type QuizQuestionResponse = {
   correct: boolean;
 };
 
-export interface QuizFormData {
+export interface GenerateFormData {
   topics: string[];
   difficulty: string;
   num_questions: number;
   max_points: number;
 }
 
-export interface QuizFormOptions {
+export interface GenerateFormOptions {
   model?: string;
   api?: string;
   type?: string;

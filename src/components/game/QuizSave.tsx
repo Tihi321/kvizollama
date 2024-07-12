@@ -40,7 +40,7 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
           gap: 2,
         }}
       >
-        <Box>
+        <Box sx={{ width: "100%" }}>
           <TextField
             fullWidth
             label={getTranslation("quiz_name")}
@@ -69,7 +69,7 @@ export const QuizSave: Component<QuizSaveProps> = ({ onBack, isApp }) => {
             {getTranslation("save_to_local_storage")}
           </FullWidthButton>
         </Box>
-        <Box>
+        <Box sx={{ width: "100%" }}>
           <TextField
             fullWidth
             label={getTranslation("quiz_name")}

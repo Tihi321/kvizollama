@@ -12,21 +12,18 @@ import { LocalSelectVoice } from "../layout/LocalSelectVoice";
 import { Back } from "../icons/Back";
 import { useTranslations } from "../../hooks/translations";
 
-interface QuizSettingsProps {
+interface GameSettingsProps {
   onBack: () => void;
 }
 
-export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
+export const GameSettings: Component<GameSettingsProps> = ({ onBack }) => {
   const [perplexityApi, setPerplexityApi] = createSignal("");
   const [chatGPTApi, setChatGPTApi] = createSignal("");
-  const [questionPerQuiz, setQuestionPerQuiz] = createSignal("");
   const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
   const { getTranslation } = useTranslations();
 
   onMount(() => {
-    const numberOfQuestion = getStringValue("questionPerQuiz");
-    setQuestionPerQuiz(numberOfQuestion || "10");
     const perplexityApi = getStringValue("perplexityApi");
     setPerplexityApi(perplexityApi);
     const chatGPTApi = getStringValue("chatgptAPI");
@@ -63,19 +60,6 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
           onRemove={() => {
             setChatGPTApi("");
             saveStringValue("chatgptAPI", "");
-          }}
-        />
-        <LocalTextInput
-          type="number"
-          label={getTranslation("questions_per_quiz")}
-          value={questionPerQuiz()}
-          onSave={(value) => {
-            saveStringValue("questionPerQuiz", value);
-            setPerplexityApi(value);
-          }}
-          onRemove={() => {
-            setQuestionPerQuiz("");
-            saveStringValue("questionPerQuiz", "10");
           }}
         />
         <LocalSelectVoice />

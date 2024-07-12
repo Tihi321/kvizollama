@@ -7,15 +7,15 @@ import { CircularProgress, Box, Button } from "@suid/material";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { emit, listen } from "@tauri-apps/api/event";
-import { QuizFormData, Topics, QuizInfo, QuizFormOptions, CdnQuizInfo } from "./types";
-import { QuizComponent } from "./components/page/QuizComponent";
-import { QuizForm } from "./components/page/QuizForm";
+import { GenerateFormData, Topics, QuizInfo, GenerateFormOptions, CdnQuizInfo } from "./types";
+import { QuizGame } from "./components/single/QuizGame";
+import { GenerateForm } from "./components/game/GenerateForm";
 import { capitalize, isEmpty } from "lodash";
 import { isTauri } from "./utils/enviroment";
-import { QuizLoad } from "./components/page/QuizLoad";
+import { QuizLoad } from "./components/game/QuizLoad";
 import { parseResponseJson } from "./utils/response";
-import { QuizSave } from "./components/page/QuizSave";
-import { QuizSettings } from "./components/page/QuizSettings";
+import { QuizSave } from "./components/game/QuizSave";
+import { GameSettings } from "./components/game/GameSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { getStringValue, saveLocalQuiz } from "./hooks/local";
 import {
@@ -25,8 +25,7 @@ import {
   getQuizTitle,
   getQuizmUrl,
 } from "./utils";
-import { TitleScreen } from "./components/layout/TitleScreen";
-import { QuizAbout } from "./components/page/QuizAbout";
+import { GameAbout } from "./components/game/GameAbout";
 import { fetchOpenAIApi } from "./utils/llms/chatGPT";
 import { getFormattedSystemPrompt } from "./utils/llms/prompt";
 import { useTranslations } from "./hooks/translations";
@@ -63,7 +62,7 @@ const MenuButton = styled(Button)`
 export const App = () => {
   const [cdnAvailableQuizes, setCdnAvailableQuizes] = createSignal<CdnQuizInfo[]>([]);
   const [quizes, setQuizes] = createSignal<QuizInfo[]>([]);
-  const [quizStarted, setQuizStarted] = createSignal(false);
+  const [singleQuizStarted, setSingleQuizStarted] = createSignal(false);
   const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
   const [generateQuiz, setGenerateQuiz] = createSignal(false);
   const [aboutQuiz, setAboutQuiz] = createSignal(false);
@@ -81,7 +80,7 @@ export const App = () => {
 
   const showStart = createMemo(
     () =>
-      !quizStarted() &&
+      !singleQuizStarted() &&
       !generateQuiz() &&
       !loading() &&
       !showLoadQuiz() &&
@@ -128,7 +127,7 @@ export const App = () => {
     return () => unlisten();
   });
 
-  const handleGenerateQuiz = async (formData: QuizFormData, options: QuizFormOptions) => {
+  const handleGenerateQuiz = async (formData: GenerateFormData, options: GenerateFormOptions) => {
     setGenerateQuiz(false);
     setLoading(true);
 
@@ -177,20 +176,14 @@ export const App = () => {
       <Header />
       <Show when={showStart()}>
         <MenuContainer>
-          {selectedQuiz() && (
-            <TitleScreen
-              title={selectedQuiz()?.name || ""}
-              difficulty={selectedQuiz()?.difficulty || ""}
-            />
-          )}
           <Menu>
             <MenuButton
-              onClick={() => setQuizStarted(true)}
+              onClick={() => setSingleQuizStarted(true)}
               variant="contained"
               color="primary"
               disabled={isEmpty(selectedQuiz())}
             >
-              {getTranslation("start_quiz")}
+              {getTranslation("start_single_quiz")}
             </MenuButton>
             <MenuButton
               onClick={() => setShowSettingsQuiz(true)}
@@ -226,12 +219,8 @@ export const App = () => {
           <CircularProgress />
         </Box>
       </Show>
-      <Show when={quizStarted() && !isEmpty(selectedQuiz())}>
-        <QuizComponent
-          quiz={selectedQuiz()?.data as Topics[]}
-          onSubmit={() => setQuizStarted(false)}
-          onCancel={() => setQuizStarted(false)}
-        />
+      <Show when={singleQuizStarted() && !isEmpty(selectedQuiz())}>
+        <QuizGame quiz={selectedQuiz() as QuizInfo} onBack={() => setSingleQuizStarted(false)} />
       </Show>
       <Show when={showLoadQuiz()}>
         <QuizLoad
@@ -265,17 +254,17 @@ export const App = () => {
         <QuizSave isApp={isApp()} onBack={() => setShowSaveQuiz(false)} />
       </Show>
       <Show when={showSettingsQuiz()}>
-        <QuizSettings onBack={() => setShowSettingsQuiz(false)} />
+        <GameSettings onBack={() => setShowSettingsQuiz(false)} />
       </Show>
       <Show when={generateQuiz()}>
-        <QuizForm
+        <GenerateForm
           isApp={isApp()}
           onGenerate={handleGenerateQuiz}
           onBack={() => setGenerateQuiz(false)}
         />
       </Show>
       <Show when={aboutQuiz()}>
-        <QuizAbout systemPrompt={systemLanguagePrompt()} onBack={() => setAboutQuiz(false)} />
+        <GameAbout systemPrompt={systemLanguagePrompt()} onBack={() => setAboutQuiz(false)} />
       </Show>
       <Footer />
     </Container>

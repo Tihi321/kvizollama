@@ -1,11 +1,24 @@
+use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::result::Result;
 
 use super::constants::QUIZES_FOLDER;
 use super::structs::Topics;
+
+fn get_quizes_folder_path() -> PathBuf {
+    let current_dir = env::current_dir().expect("Failed to get current directory");
+    let quizes_folder_path = current_dir.join(QUIZES_FOLDER);
+
+    if !quizes_folder_path.exists() {
+        fs::create_dir_all(&quizes_folder_path).unwrap();
+        println!("Folder 'quizes' created successfully.");
+    }
+
+    return quizes_folder_path;
+}
 
 pub fn add_quiz(quiz_name: &str, quiz_info: Vec<Topics>) -> io::Result<()> {
     // Check for invalid characters in quiz_name
@@ -16,13 +29,8 @@ pub fn add_quiz(quiz_name: &str, quiz_info: Vec<Topics>) -> io::Result<()> {
         ));
     }
 
-    let path = Path::new(QUIZES_FOLDER);
-    if !path.exists() {
-        fs::create_dir_all(&path)?;
-        println!("Folder 'quizes' created successfully.");
-    }
-
-    let file_path = path.join(format!("{}.json", quiz_name));
+    let quizes_folder_path = get_quizes_folder_path();
+    let file_path = quizes_folder_path.join(format!("{}.json", quiz_name));
 
     // Check if the quiz file already exists
     if file_path.exists() {
@@ -55,7 +63,7 @@ pub fn remove_quiz(quiz_name: &str) -> Result<(), std::io::Error> {
 }
 
 pub fn import_quizes(paths: Vec<String>) -> Result<(), io::Error> {
-    let quizes_folder_path = Path::new(QUIZES_FOLDER);
+    let quizes_folder_path = get_quizes_folder_path();
 
     for path_str in paths {
         let path = Path::new(&path_str);

@@ -8,6 +8,7 @@
   "questions_per_quiz": "Questions per quiz",
   "voices": "Voices",
   "autostart_voice": "Read on start",
+  "select": "Select",
   "custom_quizes": "Custom quizes",
   "cdn": "CDN",
   "local_storage": "Local Storage",

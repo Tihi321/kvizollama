@@ -7,7 +7,13 @@ import { CircularProgress, Box, Button } from "@suid/material";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { emit, listen } from "@tauri-apps/api/event";
-import { GenerateFormData, Topics, QuizInfo, GenerateFormOptions, CdnQuizInfo } from "./types";
+import {
+  GenerateFormData,
+  QuizInfo,
+  GenerateFormOptions,
+  CdnQuizInfo,
+  SelectedQuizes,
+} from "./types";
 import { QuizGame } from "./components/single/QuizGame";
 import { GenerateForm } from "./components/game/GenerateForm";
 import { capitalize, isEmpty } from "lodash";
@@ -17,7 +23,7 @@ import { parseResponseJson } from "./utils/response";
 import { QuizSave } from "./components/game/QuizSave";
 import { GameSettings } from "./components/game/GameSettings";
 import { fetchPerplexityApi } from "./utils/llms";
-import { getStringValue, saveLocalQuiz } from "./hooks/local";
+import { getLocalQuizes, getSelectedQuizes, getStringValue, saveLocalQuiz } from "./hooks/local";
 import {
   fetchCdnAvailableQuizes,
   getCdnQuiz,
@@ -29,6 +35,7 @@ import { GameAbout } from "./components/game/GameAbout";
 import { fetchOpenAIApi } from "./utils/llms/chatGPT";
 import { getFormattedSystemPrompt } from "./utils/llms/prompt";
 import { useTranslations } from "./hooks/translations";
+import { getSelectedCombinedQuiz } from "./utils/quizes";
 
 const Container = styled("div")`
   display: flex;
@@ -60,10 +67,11 @@ const MenuButton = styled(Button)`
 `;
 
 export const App = () => {
+  const [fileQuizes, setFileQuizes] = createSignal<QuizInfo[]>([]);
   const [cdnAvailableQuizes, setCdnAvailableQuizes] = createSignal<CdnQuizInfo[]>([]);
-  const [quizes, setQuizes] = createSignal<QuizInfo[]>([]);
-  const [singleQuizStarted, setSingleQuizStarted] = createSignal(false);
   const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
+  const [customQuizUrl, setCustomQuizUrl] = createSignal<string>();
+  const [selectedCustomQuiz, setSelectedCustomQuiz] = createSignal<QuizInfo>();
   const [generateQuiz, setGenerateQuiz] = createSignal(false);
   const [aboutQuiz, setAboutQuiz] = createSignal(false);
   const [showLoadQuiz, setShowLoadQuiz] = createSignal(false);
@@ -71,11 +79,24 @@ export const App = () => {
   const [showSettingsQuiz, setShowSettingsQuiz] = createSignal(false);
   const [loading, setLoading] = createSignal(true);
   const [isApp, setIsApp] = createSignal(false);
+  const [mounted, setMounted] = createSignal(false);
   const [language, setLanguage] = createSignal("");
+  const [selectedQuizes, setSelectedQuizes] = createSignal<SelectedQuizes>();
+  const [singleQuizStarted, setSingleQuizStarted] = createSignal(false);
   const { getTranslation } = useTranslations();
 
   const systemLanguagePrompt = createMemo(() => {
     return getFormattedSystemPrompt(systemPrompt, language());
+  });
+
+  const singleSelectedQuiz = createMemo(() => {
+    return customQuizUrl() && selectedCustomQuiz()
+      ? (selectedCustomQuiz() as QuizInfo)
+      : (selectedQuiz() as QuizInfo);
+  });
+
+  const isHomepage = createMemo(() => {
+    return !singleQuizStarted();
   });
 
   const showStart = createMemo(
@@ -90,7 +111,10 @@ export const App = () => {
   );
 
   onMount(async () => {
-    const quizLanguage = getStringValue("language");
+    const selectedQuizes = getSelectedQuizes();
+    setSelectedQuizes(selectedQuizes);
+
+    const quizLanguage = getStringValue("kvizolamma/language");
     setLanguage(quizLanguage || "english");
 
     const isApp = await isTauri();
@@ -105,13 +129,33 @@ export const App = () => {
 
     const customQuizUrl = getQuizmUrl();
     if (customQuizUrl) {
+      setCustomQuizUrl();
+    }
+
+    setMounted(true);
+  });
+
+  createEffect(() => {
+    if (customQuizUrl()) {
+      setCustomQuizUrl();
       setShowLoadQuiz(false);
       setLoading(true);
       const customQuizTitle = getQuizTitle();
-      getCustomQuiz(customQuizUrl, customQuizTitle || "custom").then((data) => {
-        setSelectedQuiz(data);
+      getCustomQuiz(customQuizUrl() as string, customQuizTitle || "custom").then((data) => {
+        setSelectedCustomQuiz(data);
         setLoading(false);
       });
+    }
+  });
+
+  createEffect(() => {
+    if (mounted()) {
+      const localQuizes = getLocalQuizes();
+      getSelectedCombinedQuiz(selectedQuizes() as SelectedQuizes, fileQuizes(), localQuizes).then(
+        (data) => {
+          setSelectedQuiz(data);
+        }
+      );
     }
   });
 
@@ -120,7 +164,7 @@ export const App = () => {
     const unlisten = await listen("quizes", (event: any) => {
       const responseQuizes = parseResponseJson(event.payload);
 
-      setQuizes(responseQuizes);
+      setFileQuizes(responseQuizes);
       setLoading(false);
     });
 
@@ -171,9 +215,21 @@ export const App = () => {
     }
   };
 
+  const onLoadBack = () => {
+    setLoading(true);
+    setShowLoadQuiz(false);
+    const localQuizes = getLocalQuizes();
+    getSelectedCombinedQuiz(selectedQuizes() as SelectedQuizes, fileQuizes(), localQuizes).then(
+      (data) => {
+        setLoading(false);
+        setSelectedQuiz(data);
+      }
+    );
+  };
+
   return (
     <Container>
-      <Header />
+      <Header langugage={isHomepage()} />
       <Show when={showStart()}>
         <MenuContainer>
           <Menu>
@@ -219,35 +275,15 @@ export const App = () => {
           <CircularProgress />
         </Box>
       </Show>
-      <Show when={singleQuizStarted() && !isEmpty(selectedQuiz())}>
-        <QuizGame quiz={selectedQuiz() as QuizInfo} onBack={() => setSingleQuizStarted(false)} />
+      <Show when={singleQuizStarted() && !isEmpty(singleSelectedQuiz())}>
+        <QuizGame quiz={singleSelectedQuiz()} onBack={() => setSingleQuizStarted(false)} />
       </Show>
       <Show when={showLoadQuiz()}>
         <QuizLoad
           cdnQuizes={cdnAvailableQuizes()}
           isApp={isApp()}
-          quizes={quizes()}
-          onBack={() => setShowLoadQuiz(false)}
-          onLoad={(quiz) => {
-            setSelectedQuiz(quiz);
-            setShowLoadQuiz(false);
-          }}
-          onFetchCDNLoad={(path, name) => {
-            setShowLoadQuiz(false);
-            setLoading(true);
-            getCdnQuiz(path, name).then((data) => {
-              setSelectedQuiz(data);
-              setLoading(false);
-            });
-          }}
-          onFetchLoad={(url, name) => {
-            setShowLoadQuiz(false);
-            setLoading(true);
-            getCustomQuiz(url, name).then((data) => {
-              setSelectedQuiz(data);
-              setLoading(false);
-            });
-          }}
+          fileQuizes={fileQuizes()}
+          onBack={onLoadBack}
         />
       </Show>
       <Show when={showSaveQuiz()}>

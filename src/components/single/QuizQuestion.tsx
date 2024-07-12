@@ -105,9 +105,9 @@ export const QuizQuestion: Component<QuizQuestionProps> = (props) => {
 
   onMount(() => {
     speaker = new SpeechSynthesisUtterance();
-    const voice = getStringValue("selectedVoice");
+    const voice = getStringValue("kvizolamma/selectedVoice");
     setSelectedVoice(voice || "");
-    const autoStartVoice = getBooleanValue("autostartvoice");
+    const autoStartVoice = getBooleanValue("kvizolamma/autostartvoice");
     setAutoStartVoice(autoStartVoice);
     setMounted(true);
   });

@@ -9,7 +9,7 @@ export const useTranslations = () => {
   const [language, setLanguage] = createSignal("");
 
   onMount(async () => {
-    const quizLanguage = getStringValue("language");
+    const quizLanguage = getStringValue("kvizolamma/language");
     setLanguage(quizLanguage || "english");
   });
 

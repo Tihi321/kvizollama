@@ -1,6 +1,6 @@
 import { styled } from "solid-styled-components";
-import { IconButton, MenuItem, Select } from "@suid/material";
-import { createEffect, createSignal, onMount } from "solid-js";
+import { IconButton, MenuItem, Select, Box } from "@suid/material";
+import { Component, createEffect, createSignal, onMount } from "solid-js";
 import { Speaker } from "../icons/Speaker";
 import { getStringValue, saveStringValue } from "../../hooks/local";
 
@@ -12,10 +12,9 @@ const Container = styled("div")`
   cursor: pointer;
 `;
 
-const Options = styled("div")`
+const Options = styled(Box)`
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
 
   .MuiInputBase-root {
     font-size: 14px;
@@ -49,7 +48,11 @@ const TitleText = styled("h3")`
   }
 `;
 
-export const Header = () => {
+interface HeaderProps {
+  langugage: boolean;
+}
+
+export const Header: Component<HeaderProps> = (props) => {
   const [language, setLanguage] = createSignal("");
   let audioElement: any;
 
@@ -61,25 +64,28 @@ export const Header = () => {
   });
 
   onMount(() => {
-    const quizLanguage = getStringValue("language");
+    const quizLanguage = getStringValue("kvizolamma/language");
     setLanguage(quizLanguage || "english");
   });
 
   return (
     <Container>
       <TitleText>Kvizollama</TitleText>
-      <Options>
-        <Select
-          value={language()}
-          onChange={(e) => {
-            saveStringValue("language", e.target.value);
-            setLanguage(e.target.value);
-            window.location.reload();
-          }}
-        >
-          <MenuItem value="english">Eng</MenuItem>
-          <MenuItem value="croatian">Hr</MenuItem>
-        </Select>
+      <Options sx={{ justifyContent: props.langugage ? "space-between" : "flex-end" }}>
+        {props.langugage && (
+          <Select
+            value={language()}
+            onChange={(e) => {
+              saveStringValue("language", e.target.value);
+              setLanguage(e.target.value);
+              window.location.reload();
+            }}
+          >
+            <MenuItem value="english">Eng</MenuItem>
+            <MenuItem value="croatian">Hr</MenuItem>
+          </Select>
+        )}
+
         <IconButtonStyled
           aria-label="toggle volume"
           onClick={() => {

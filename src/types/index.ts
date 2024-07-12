@@ -57,3 +57,10 @@ export interface GenerateFormOptions {
   type?: string;
   name: string;
 }
+
+export type SelectedQuizes = {
+  cdn: string[];
+  custom: string[];
+  local: string[];
+  file: string[];
+};

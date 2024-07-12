@@ -27,9 +27,9 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
   const { getTranslation } = useTranslations();
 
   onMount(() => {
-    const perplexityApi = getStringValue("perplexityApi");
+    const perplexityApi = getStringValue("kvizolamma/perplexityApi");
     setPerplexityApi(perplexityApi);
-    const chatGPTApi = getStringValue("chatgptAPI");
+    const chatGPTApi = getStringValue("kvizolamma/chatgptAPI");
     setChatGPTApi(chatGPTApi);
   });
 

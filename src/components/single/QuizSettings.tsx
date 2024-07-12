@@ -16,7 +16,7 @@ export const QuizSettings: Component<QuizSettingsProps> = ({ onBack }) => {
   const { getTranslation } = useTranslations();
 
   onMount(() => {
-    const numberOfQuestion = getStringValue("questionPerQuiz");
+    const numberOfQuestion = getStringValue("kvizolamma/questionPerQuiz");
     setQuestionPerQuiz(numberOfQuestion || "10");
     setMounted(true);
   });

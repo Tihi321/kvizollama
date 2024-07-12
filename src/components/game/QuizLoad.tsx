@@ -1,16 +1,32 @@
-import { Component, createSignal, onMount } from "solid-js";
+import { Component, createSignal, onMount, Show } from "solid-js";
 import { emit } from "@tauri-apps/api/event";
 import { styled } from "solid-styled-components";
-import { Button, Box, FormControl, InputLabel, Select, MenuItem } from "@suid/material";
-import { CdnQuizInfo, CustomQuizInfo, QuizInfo } from "../../types";
-import { getCustomQuizes, getLocalQuizes, removeLocalQuiz } from "../../hooks/local";
-import { map } from "lodash";
+import {
+  Button,
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+} from "@suid/material";
+import { CdnQuizInfo, CustomQuizInfo, QuizInfo, SelectedQuizes } from "../../types";
+import {
+  getCustomQuizes,
+  getLocalQuizes,
+  getSelectedQuizes,
+  removeLocalQuiz,
+  removeSelectedQuiz,
+  saveSelectedQuiz,
+} from "../../hooks/local";
+import { get, includes, isEmpty, map } from "lodash";
 import { Container } from "../layout/Container";
 import { Trashcan } from "../icons/Trashcan";
 import { Export } from "../icons/Export";
-import { Load } from "../icons/Load";
 import { Back } from "../icons/Back";
 import { useTranslations } from "../../hooks/translations";
+import { getNameValueString } from "../../utils/quizes";
 
 const MenuItemStyled = styled(MenuItem)`
   display: flex;
@@ -49,26 +65,16 @@ const ButtonElement = styled(Button)`
 `;
 
 interface QuizLoadProps {
-  onLoad: (quiz: QuizInfo) => void;
-  onFetchCDNLoad: (path: string, name: string) => void;
-  onFetchLoad: (url: string, name: string) => void;
   onBack: () => void;
-  quizes: QuizInfo[];
+  fileQuizes: QuizInfo[];
   cdnQuizes: CdnQuizInfo[];
   isApp: boolean;
 }
 
-export const QuizLoad: Component<QuizLoadProps> = ({
-  onLoad,
-  onFetchCDNLoad,
-  onFetchLoad,
-  onBack,
-  quizes,
-  cdnQuizes,
-  isApp,
-}) => {
+export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuizes, isApp }) => {
   const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
   const [customQuizes, setCustomQuizes] = createSignal<CustomQuizInfo[]>([]);
+  const [selectedQuizes, setSelectedQuizes] = createSignal<SelectedQuizes>();
   const { getTranslation } = useTranslations();
 
   onMount(() => {
@@ -76,7 +82,14 @@ export const QuizLoad: Component<QuizLoadProps> = ({
     setLocalQuizes(localQuizes);
     const customQuizes = getCustomQuizes();
     setCustomQuizes(customQuizes);
+    const selectedQuizes = getSelectedQuizes();
+    setSelectedQuizes(selectedQuizes);
   });
+
+  const getSelectedChecked = (selectedQuizes: SelectedQuizes, value: string, type: string) => {
+    const selectedLocalQuizes = get(selectedQuizes, type) || [];
+    return includes(selectedLocalQuizes, value);
+  };
 
   return (
     <Container>
@@ -90,127 +103,101 @@ export const QuizLoad: Component<QuizLoadProps> = ({
           gap: 2,
         }}
       >
-        <FormControl fullWidth margin="normal">
-          <InputLabel>{getTranslation("cdn")}</InputLabel>
-          <Select value={""} onChange={() => {}}>
-            {map(cdnQuizes, (values: CdnQuizInfo) => (
-              <MenuItemStyled>
-                <MenuTitle>{values.name}</MenuTitle>
-                <ButtonsContainer large={false}>
-                  <ButtonElement
-                    onClick={() => {
-                      onFetchCDNLoad(values.path, values.name);
-                    }}
-                    variant="contained"
-                    color="primary"
-                  >
-                    <Load />
-                  </ButtonElement>
-                </ButtonsContainer>
-              </MenuItemStyled>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth margin="normal">
-          <InputLabel>{getTranslation("custom_quizes")}</InputLabel>
-          <Select value={""} onChange={() => {}}>
-            {map(customQuizes(), (values: CustomQuizInfo) => (
-              <MenuItemStyled>
-                <MenuTitle>{values.name}</MenuTitle>
-                <ButtonsContainer large={true}>
-                  <ButtonElement
-                    onClick={() => {
-                      onFetchLoad(values.url, values.name);
-                    }}
-                    variant="contained"
-                    color="primary"
-                  >
-                    <Load />
-                  </ButtonElement>
-                  <ButtonElement
-                    onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify(values.url));
-                    }}
-                    variant="contained"
-                    color="secondary"
-                  >
-                    <Export />
-                  </ButtonElement>
-                  <ButtonElement
-                    onClick={() => {
-                      const localQuizes = removeLocalQuiz(values.name);
-                      setLocalQuizes(localQuizes);
-                    }}
-                    variant="contained"
-                    color="error"
-                  >
-                    <Trashcan />
-                  </ButtonElement>
-                </ButtonsContainer>
-              </MenuItemStyled>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth margin="normal">
-          <InputLabel>{getTranslation("local_storage")}</InputLabel>
-          <Select value={""} onChange={() => {}}>
-            {map(localQuizes(), (values: QuizInfo) => (
-              <MenuItemStyled>
-                <MenuTitle>{values.name}</MenuTitle>
-                <ButtonsContainer large={true}>
-                  <ButtonElement
-                    onClick={() => {
-                      onLoad(values);
-                    }}
-                    variant="contained"
-                    color="primary"
-                  >
-                    <Load />
-                  </ButtonElement>
-                  <ButtonElement
-                    onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify(values.data));
-                    }}
-                    variant="contained"
-                    color="secondary"
-                  >
-                    <Export />
-                  </ButtonElement>
-                  <ButtonElement
-                    onClick={() => {
-                      const localQuizes = removeLocalQuiz(values.name);
-                      setLocalQuizes(localQuizes);
-                    }}
-                    variant="contained"
-                    color="error"
-                  >
-                    <Trashcan />
-                  </ButtonElement>
-                </ButtonsContainer>
-              </MenuItemStyled>
-            ))}
-          </Select>
-        </FormControl>
-        {isApp && (
+        <Show when={!isEmpty(selectedQuizes())}>
           <FormControl fullWidth margin="normal">
-            <InputLabel>{getTranslation("disk")}</InputLabel>
+            <InputLabel>{getTranslation("cdn")}</InputLabel>
+            <Select>
+              {map(cdnQuizes, (values: CdnQuizInfo) => (
+                <MenuItemStyled>
+                  <MenuTitle>{values.name}</MenuTitle>
+                  <ButtonsContainer large={false}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={getSelectedChecked(
+                            selectedQuizes() as SelectedQuizes,
+                            getNameValueString(values.name, values.path),
+                            "cdn"
+                          )}
+                          onChange={() => {}}
+                        />
+                      }
+                      label={getTranslation("select")}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const checked = !getSelectedChecked(
+                          selectedQuizes() as SelectedQuizes,
+                          getNameValueString(values.name, values.path),
+                          "cdn"
+                        );
+
+                        if (checked) {
+                          const output = saveSelectedQuiz(
+                            getNameValueString(values.name, values.path),
+                            "cdn"
+                          );
+                          setSelectedQuizes(output);
+                        } else {
+                          const output = removeSelectedQuiz(
+                            getNameValueString(values.name, values.path),
+                            "cdn"
+                          );
+                          setSelectedQuizes(output);
+                        }
+                      }}
+                    />
+                  </ButtonsContainer>
+                </MenuItemStyled>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{getTranslation("custom_quizes")}</InputLabel>
             <Select value={""} onChange={() => {}}>
-              {map(quizes, (values: QuizInfo) => (
+              {map(customQuizes(), (values: CustomQuizInfo) => (
                 <MenuItemStyled>
                   <MenuTitle>{values.name}</MenuTitle>
                   <ButtonsContainer large={true}>
-                    <ButtonElement
-                      onClick={() => {
-                        onLoad(values);
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={getSelectedChecked(
+                            selectedQuizes() as SelectedQuizes,
+                            getNameValueString(values.name, values.url),
+                            "custom"
+                          )}
+                          onChange={() => {}}
+                        />
+                      }
+                      label={getTranslation("select")}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const checked = !getSelectedChecked(
+                          selectedQuizes() as SelectedQuizes,
+                          getNameValueString(values.name, values.url),
+                          "custom"
+                        );
+
+                        if (checked) {
+                          const output = saveSelectedQuiz(
+                            getNameValueString(values.name, values.url),
+                            "custom"
+                          );
+                          setSelectedQuizes(output);
+                        } else {
+                          const output = removeSelectedQuiz(
+                            getNameValueString(values.name, values.url),
+                            "custom"
+                          );
+                          setSelectedQuizes(output);
+                        }
                       }}
-                      variant="contained"
-                      color="primary"
-                    >
-                      <Load />
-                    </ButtonElement>
+                    />
                     <ButtonElement
                       onClick={() => {
-                        navigator.clipboard.writeText(JSON.stringify(values.data));
+                        navigator.clipboard.writeText(JSON.stringify(values.url));
                       }}
                       variant="contained"
                       color="secondary"
@@ -219,7 +206,8 @@ export const QuizLoad: Component<QuizLoadProps> = ({
                     </ButtonElement>
                     <ButtonElement
                       onClick={() => {
-                        emit("remove_quiz", values.name);
+                        const localQuizes = removeLocalQuiz(values.name);
+                        setLocalQuizes(localQuizes);
                       }}
                       variant="contained"
                       color="error"
@@ -231,7 +219,130 @@ export const QuizLoad: Component<QuizLoadProps> = ({
               ))}
             </Select>
           </FormControl>
-        )}
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{getTranslation("local_storage")}</InputLabel>
+            <Select value={""} onChange={() => {}}>
+              {map(localQuizes(), (values: QuizInfo) => (
+                <MenuItemStyled>
+                  <MenuTitle>{values.name}</MenuTitle>
+                  <ButtonsContainer large={true}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={getSelectedChecked(
+                            selectedQuizes() as SelectedQuizes,
+                            values.name,
+                            "local"
+                          )}
+                          onChange={() => {}}
+                        />
+                      }
+                      label={getTranslation("select")}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const checked = !getSelectedChecked(
+                          selectedQuizes() as SelectedQuizes,
+                          values.name,
+                          "local"
+                        );
+
+                        if (checked) {
+                          const output = saveSelectedQuiz(values.name, "local");
+                          setSelectedQuizes(output);
+                        } else {
+                          const output = removeSelectedQuiz(values.name, "local");
+                          setSelectedQuizes(output);
+                        }
+                      }}
+                    />
+                    <ButtonElement
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(values.data));
+                      }}
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Export />
+                    </ButtonElement>
+                    <ButtonElement
+                      onClick={() => {
+                        const localQuizes = removeLocalQuiz(values.name);
+                        setLocalQuizes(localQuizes);
+                      }}
+                      variant="contained"
+                      color="error"
+                    >
+                      <Trashcan />
+                    </ButtonElement>
+                  </ButtonsContainer>
+                </MenuItemStyled>
+              ))}
+            </Select>
+          </FormControl>
+          {isApp && (
+            <FormControl fullWidth margin="normal">
+              <InputLabel>{getTranslation("disk")}</InputLabel>
+              <Select value={""} onChange={() => {}}>
+                {map(fileQuizes, (values: QuizInfo) => (
+                  <MenuItemStyled>
+                    <MenuTitle>{values.name}</MenuTitle>
+                    <ButtonsContainer large={true}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={getSelectedChecked(
+                              selectedQuizes() as SelectedQuizes,
+                              values.name,
+                              "file"
+                            )}
+                            onChange={() => {}}
+                          />
+                        }
+                        label={getTranslation("select")}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          const checked = !getSelectedChecked(
+                            selectedQuizes() as SelectedQuizes,
+                            values.name,
+                            "file"
+                          );
+
+                          if (checked) {
+                            const output = saveSelectedQuiz(values.name, "file");
+                            setSelectedQuizes(output);
+                          } else {
+                            const output = removeSelectedQuiz(values.name, "file");
+                            setSelectedQuizes(output);
+                          }
+                        }}
+                      />
+                      <ButtonElement
+                        onClick={() => {
+                          navigator.clipboard.writeText(JSON.stringify(values.data));
+                        }}
+                        variant="contained"
+                        color="secondary"
+                      >
+                        <Export />
+                      </ButtonElement>
+                      <ButtonElement
+                        onClick={() => {
+                          emit("remove_quiz", values.name);
+                        }}
+                        variant="contained"
+                        color="error"
+                      >
+                        <Trashcan />
+                      </ButtonElement>
+                    </ButtonsContainer>
+                  </MenuItemStyled>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </Show>
       </Box>
       <Button onClick={onBack} variant="contained" color="info">
         <Back />

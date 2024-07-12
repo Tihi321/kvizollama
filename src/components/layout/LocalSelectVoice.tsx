@@ -34,7 +34,7 @@ export const LocalSelectVoice = () => {
   const { getTranslation } = useTranslations();
 
   onMount(() => {
-    const voice = getStringValue("selectedVoice");
+    const voice = getStringValue("kvizolamma/selectedVoice");
     setSelectedVoice(voice || "");
     setMounted(true);
   });

@@ -8,6 +8,7 @@
   "questions_per_quiz": "Pitanja po kvizu",
   "voices": "Glasovi",
   "autostart_voice": "Čitaj na početku",
+  "select": "Odaberi",
   "custom_quizes": "Prilagođeni kvizovi",
   "cdn": "CDN",
   "local_storage": "Lokalna pohrana",

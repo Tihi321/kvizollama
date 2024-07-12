@@ -47,7 +47,7 @@ export const QuizComponent: Component<QuizComponentProps> = ({ onCancel, onSubmi
   const [quizComplete, setQuizComplete] = createSignal(false);
 
   const questionsArray = createMemo(() => {
-    const numberOfQuestion = getStringValue("questionPerQuiz") || "10";
+    const numberOfQuestion = getStringValue("kvizolamma/questionPerQuiz") || "10";
     const questionsNumber = parseInt(numberOfQuestion, 10);
     const allQuestions = mergeTopicsAndQuestions(quiz);
     const shuffleQuestions = shuffle(allQuestions);

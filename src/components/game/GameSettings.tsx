@@ -19,6 +19,7 @@ interface GameSettingsProps {
 export const GameSettings: Component<GameSettingsProps> = ({ onBack }) => {
   const [perplexityApi, setPerplexityApi] = createSignal("");
   const [chatGPTApi, setChatGPTApi] = createSignal("");
+  const [serverUrl, setServerUrl] = createSignal("");
   const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
   const { getTranslation } = useTranslations();
@@ -30,6 +31,8 @@ export const GameSettings: Component<GameSettingsProps> = ({ onBack }) => {
     setChatGPTApi(chatGPTApi);
     const autoStartVoice = getBooleanValue("kvizolamma/autostartvoice");
     setAutoStartVoice(autoStartVoice);
+    const url = getStringValue("kvizolamma/serverurl");
+    setServerUrl(url);
     setMounted(true);
   });
   return (
@@ -40,12 +43,12 @@ export const GameSettings: Component<GameSettingsProps> = ({ onBack }) => {
           label="Perplexity API"
           value={perplexityApi()}
           onSave={(value) => {
-            saveStringValue("perplexityApi", value);
+            saveStringValue("kvizolamma/perplexityApi", value);
             setPerplexityApi(value);
           }}
           onRemove={() => {
             setPerplexityApi("");
-            saveStringValue("perplexityApi", "");
+            saveStringValue("kvizolamma/perplexityApi", "");
           }}
         />
         <LocalTextInput
@@ -53,12 +56,26 @@ export const GameSettings: Component<GameSettingsProps> = ({ onBack }) => {
           label="ChatGPT API"
           value={chatGPTApi()}
           onSave={(value) => {
-            saveStringValue("chatgptAPI", value);
+            saveStringValue("kvizolamma/chatgptAPI", value);
             setChatGPTApi(value);
           }}
           onRemove={() => {
             setChatGPTApi("");
-            saveStringValue("chatgptAPI", "");
+            saveStringValue("kvizolamma/chatgptAPI", "");
+          }}
+        />
+        <LocalTextInput
+          type="text"
+          label="Server URL"
+          value={serverUrl()}
+          onSave={(value) => {
+            saveStringValue("kvizolamma/serverurl", value);
+            setServerUrl(value);
+          }}
+          onRemove={() => {
+            setServerUrl("");
+            saveStringValue("kvizolamma/serverurl", "");
+            saveBooleanValue("kvizolamma/useserver", false);
           }}
         />
         <LocalSelectVoice />
@@ -69,7 +86,7 @@ export const GameSettings: Component<GameSettingsProps> = ({ onBack }) => {
               onChange={(event: any) => {
                 const checked = !event.target.checked;
                 setAutoStartVoice(checked);
-                saveBooleanValue("autostartvoice", checked);
+                saveBooleanValue("kvizolamma/autostartvoice", checked);
               }}
             />
           }

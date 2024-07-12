@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
@@ -215,8 +216,6 @@ pub fn get_server_quizes_response() -> Result<String, io::Error> {
     let path = get_server_folder_path();
     let mut quizes: String = "".to_string();
 
-    quizes.push_str("[");
-
     // Ensure the "quizes" folder exists
     if !path.exists() {
         return Ok(quizes); // Return an empty vector if the folder does not exist
@@ -235,19 +234,28 @@ pub fn get_server_quizes_response() -> Result<String, io::Error> {
             let mut content = String::new();
             file.read_to_string(&mut content)?;
 
-            // Add (file_name, content) tuple to the vector
-            let file_name = entry
-                .file_name()
-                .into_string()
-                .unwrap_or_default()
-                .trim_end_matches(".json")
-                .to_string();
+            // Remove the first '[' using regex
+            let re = Regex::new(r"\[").unwrap();
+            content = re.replace(&content, "").to_string();
 
-            let output = format!("{{\"name\":\"{}\",\"content\":{}}},", file_name, content);
-            quizes.push_str(output.as_str());
+            // Remove the last ']'
+            let re_end = Regex::new(r"\]$").unwrap();
+            content = re_end.replace(&content, "").to_string();
+
+            // Add a comma at the end
+            content.push_str(",");
+
+            quizes.push_str(content.as_str());
         }
     }
 
+    if !quizes.is_empty() {
+        // Remove the last comma
+        let re = Regex::new(r",$").unwrap();
+        content = re.replace(&content, "").to_string();
+    }
+
+    quizes.insert_str(0, "[");
     quizes.push_str("]");
 
     Ok(quizes)

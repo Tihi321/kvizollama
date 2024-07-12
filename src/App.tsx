@@ -23,7 +23,13 @@ import { parseResponseJson } from "./utils/response";
 import { QuizSave } from "./components/game/QuizSave";
 import { GameSettings } from "./components/game/GameSettings";
 import { fetchPerplexityApi } from "./utils/llms";
-import { getLocalQuizes, getSelectedQuizes, getStringValue, saveLocalQuiz } from "./hooks/local";
+import {
+  getBooleanValue,
+  getLocalQuizes,
+  getSelectedQuizes,
+  getStringValue,
+  saveLocalQuiz,
+} from "./hooks/local";
 import { fetchCdnAvailableQuizes, getCustomQuiz, getQuizTitle, getQuizmUrl } from "./utils";
 import { GameAbout } from "./components/game/GameAbout";
 import { fetchOpenAIApi } from "./utils/llms/chatGPT";
@@ -62,6 +68,7 @@ const MenuButton = styled(Button)`
 
 export const App = () => {
   const [fileQuizes, setFileQuizes] = createSignal<QuizInfo[]>([]);
+  const [serverQuizes, setServerQuizes] = createSignal<QuizInfo[]>([]);
   const [cdnAvailableQuizes, setCdnAvailableQuizes] = createSignal<CdnQuizInfo[]>([]);
   const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
   const [customQuizUrl, setCustomQuizUrl] = createSignal<string>();
@@ -75,7 +82,6 @@ export const App = () => {
   const [isApp, setIsApp] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
   const [language, setLanguage] = createSignal("");
-  const [selectedQuizes, setSelectedQuizes] = createSignal<SelectedQuizes>();
   const [singleQuizStarted, setSingleQuizStarted] = createSignal(false);
   const { getTranslation } = useTranslations();
 
@@ -104,10 +110,28 @@ export const App = () => {
       !showSettingsQuiz()
   );
 
-  onMount(async () => {
-    const selectedQuizes = getSelectedQuizes();
-    setSelectedQuizes(selectedQuizes);
+  const setSelectedQuizRequest = (callback: () => void = () => {}) => {
+    const useServer = getBooleanValue("kvizolamma/useserver");
+    const url = getStringValue("kvizolamma/serverurl");
+    if (useServer && url) {
+      getCustomQuiz(url, "server").then((data) => {
+        console.log(data);
+        // setSelectedQuiz(data);
+        callback();
+      });
+    } else {
+      const localQuizes = getLocalQuizes();
+      const selectedQuizes = getSelectedQuizes();
+      getSelectedCombinedQuiz(selectedQuizes as SelectedQuizes, fileQuizes(), localQuizes).then(
+        (data) => {
+          setSelectedQuiz(data);
+          callback();
+        }
+      );
+    }
+  };
 
+  onMount(async () => {
     const quizLanguage = getStringValue("kvizolamma/language");
     setLanguage(quizLanguage || "english");
 
@@ -115,6 +139,7 @@ export const App = () => {
     setIsApp(isApp);
     if (isApp) {
       emit("get_quizes");
+      emit("get_server_quizes");
     }
     fetchCdnAvailableQuizes().then((response) => {
       setLoading(false);
@@ -144,25 +169,35 @@ export const App = () => {
 
   createEffect(() => {
     if (mounted()) {
-      const localQuizes = getLocalQuizes();
-      getSelectedCombinedQuiz(selectedQuizes() as SelectedQuizes, fileQuizes(), localQuizes).then(
-        (data) => {
-          setSelectedQuiz(data);
-        }
-      );
+      setSelectedQuizRequest();
     }
   });
 
   createEffect(async () => {
     if (!isApp()) return;
-    const unlisten = await listen("quizes", (event: any) => {
+    const unlistenQuizes = await listen("quizes", (event: any) => {
       const responseQuizes = parseResponseJson(event.payload);
 
       setFileQuizes(responseQuizes);
       setLoading(false);
     });
 
-    return () => unlisten();
+    return () => {
+      unlistenQuizes();
+    };
+  });
+
+  createEffect(async () => {
+    if (!isApp()) return;
+    const unlistenServerQuizes = await listen("server_quizes", (event: any) => {
+      const responseQuizes = parseResponseJson(event.payload);
+
+      setServerQuizes(responseQuizes);
+    });
+
+    return () => {
+      unlistenServerQuizes();
+    };
   });
 
   const handleGenerateQuiz = async (formData: GenerateFormData, options: GenerateFormOptions) => {
@@ -212,13 +247,9 @@ export const App = () => {
   const onLoadBack = () => {
     setLoading(true);
     setShowLoadQuiz(false);
-    const localQuizes = getLocalQuizes();
-    getSelectedCombinedQuiz(selectedQuizes() as SelectedQuizes, fileQuizes(), localQuizes).then(
-      (data) => {
-        setLoading(false);
-        setSelectedQuiz(data);
-      }
-    );
+    setSelectedQuizRequest(() => {
+      setLoading(false);
+    });
   };
 
   return (
@@ -277,6 +308,7 @@ export const App = () => {
           cdnQuizes={cdnAvailableQuizes()}
           isApp={isApp()}
           fileQuizes={fileQuizes()}
+          serverQuizes={serverQuizes()}
           onBack={onLoadBack}
         />
       </Show>

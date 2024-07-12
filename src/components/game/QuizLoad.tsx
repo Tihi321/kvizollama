@@ -13,11 +13,14 @@ import {
 } from "@suid/material";
 import { CdnQuizInfo, CustomQuizInfo, QuizInfo, SelectedQuizes } from "../../types";
 import {
+  getBooleanValue,
   getCustomQuizes,
   getLocalQuizes,
   getSelectedQuizes,
+  getStringValue,
   removeLocalQuiz,
   removeSelectedQuiz,
+  saveBooleanValue,
   saveSelectedQuiz,
 } from "../../hooks/local";
 import { get, includes, isEmpty, map } from "lodash";
@@ -27,6 +30,7 @@ import { Export } from "../icons/Export";
 import { Back } from "../icons/Back";
 import { useTranslations } from "../../hooks/translations";
 import { getNameValueString } from "../../utils/quizes";
+import { Load } from "../icons/Load";
 
 const MenuItemStyled = styled(MenuItem)`
   display: flex;
@@ -52,10 +56,10 @@ const ButtonsContainer = styled("div")<{ large: boolean }>`
   display: flex;
   gap: 10px;
   justify-content: center;
-  width: ${(props) => (props?.large ? "100%" : "80px")};
+  width: ${(props) => (props?.large ? "100%" : "150px")};
 
   @media (min-width: 700px) {
-    width: ${(props) => (props?.large ? "220px" : "80px")};
+    width: ${(props) => (props?.large ? "350px" : "150px")};
   }
 `;
 
@@ -67,14 +71,17 @@ const ButtonElement = styled(Button)`
 interface QuizLoadProps {
   onBack: () => void;
   fileQuizes: QuizInfo[];
+  serverQuizes: QuizInfo[];
   cdnQuizes: CdnQuizInfo[];
   isApp: boolean;
 }
 
-export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuizes, isApp }) => {
+export const QuizLoad: Component<QuizLoadProps> = (props) => {
   const [localQuizes, setLocalQuizes] = createSignal<QuizInfo[]>([]);
   const [customQuizes, setCustomQuizes] = createSignal<CustomQuizInfo[]>([]);
   const [selectedQuizes, setSelectedQuizes] = createSignal<SelectedQuizes>();
+  const [serverUrl, setServerUrl] = createSignal("");
+  const [useServerUrl, setUseServerUrl] = createSignal(false);
   const { getTranslation } = useTranslations();
 
   onMount(() => {
@@ -84,6 +91,10 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
     setCustomQuizes(customQuizes);
     const selectedQuizes = getSelectedQuizes();
     setSelectedQuizes(selectedQuizes);
+    const useServer = getBooleanValue("kvizolamma/useserver");
+    setUseServerUrl(useServer);
+    const url = getStringValue("kvizolamma/serverurl");
+    setServerUrl(url);
   });
 
   const getSelectedChecked = (selectedQuizes: SelectedQuizes, value: string, type: string) => {
@@ -104,14 +115,15 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
         }}
       >
         <Show when={!isEmpty(selectedQuizes())}>
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" disabled={useServerUrl()}>
             <InputLabel>{getTranslation("cdn")}</InputLabel>
             <Select>
-              {map(cdnQuizes, (values: CdnQuizInfo) => (
+              {map(props.cdnQuizes, (values: CdnQuizInfo) => (
                 <MenuItemStyled>
                   <MenuTitle>{values.name}</MenuTitle>
                   <ButtonsContainer large={false}>
                     <FormControlLabel
+                      sx={{ width: "100%" }}
                       control={
                         <Checkbox
                           checked={getSelectedChecked(
@@ -152,7 +164,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" disabled={useServerUrl()}>
             <InputLabel>{getTranslation("custom_quizes")}</InputLabel>
             <Select value={""} onChange={() => {}}>
               {map(customQuizes(), (values: CustomQuizInfo) => (
@@ -160,6 +172,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
                   <MenuTitle>{values.name}</MenuTitle>
                   <ButtonsContainer large={true}>
                     <FormControlLabel
+                      sx={{ width: "100%" }}
                       control={
                         <Checkbox
                           checked={getSelectedChecked(
@@ -219,7 +232,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" disabled={useServerUrl()}>
             <InputLabel>{getTranslation("local_storage")}</InputLabel>
             <Select value={""} onChange={() => {}}>
               {map(localQuizes(), (values: QuizInfo) => (
@@ -227,6 +240,7 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
                   <MenuTitle>{values.name}</MenuTitle>
                   <ButtonsContainer large={true}>
                     <FormControlLabel
+                      sx={{ width: "100%" }}
                       control={
                         <Checkbox
                           checked={getSelectedChecked(
@@ -280,11 +294,11 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
               ))}
             </Select>
           </FormControl>
-          {isApp && (
-            <FormControl fullWidth margin="normal">
+          {props.isApp && (
+            <FormControl fullWidth margin="normal" disabled={useServerUrl()}>
               <InputLabel>{getTranslation("disk")}</InputLabel>
               <Select value={""} onChange={() => {}}>
-                {map(fileQuizes, (values: QuizInfo) => (
+                {map(props.fileQuizes, (values: QuizInfo) => (
                   <MenuItemStyled>
                     <MenuTitle>{values.name}</MenuTitle>
                     <ButtonsContainer large={true}>
@@ -329,6 +343,15 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
                       </ButtonElement>
                       <ButtonElement
                         onClick={() => {
+                          emit("add_to_server_quiz", values.name);
+                        }}
+                        variant="contained"
+                        color="info"
+                      >
+                        <Load />
+                      </ButtonElement>
+                      <ButtonElement
+                        onClick={() => {
                           emit("remove_quiz", values.name);
                         }}
                         variant="contained"
@@ -342,9 +365,46 @@ export const QuizLoad: Component<QuizLoadProps> = ({ onBack, fileQuizes, cdnQuiz
               </Select>
             </FormControl>
           )}
+          {props.isApp && (
+            <FormControl fullWidth margin="normal" disabled={useServerUrl()}>
+              <InputLabel>{getTranslation("server")}</InputLabel>
+              <Select value={""} onChange={() => {}}>
+                {map(props.serverQuizes, (values: QuizInfo) => (
+                  <MenuItemStyled>
+                    <MenuTitle>{values.name}</MenuTitle>
+                    <ButtonsContainer large={false}>
+                      <ButtonElement
+                        onClick={() => {
+                          emit("remove_server_quiz", values.name);
+                        }}
+                        variant="contained"
+                        color="error"
+                      >
+                        <Trashcan />
+                      </ButtonElement>
+                    </ButtonsContainer>
+                  </MenuItemStyled>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+          <FormControlLabel
+            disabled={isEmpty(serverUrl())}
+            control={
+              <Checkbox
+                checked={useServerUrl()}
+                onChange={(event: any) => {
+                  const checked = !event.target.checked;
+                  setUseServerUrl(checked);
+                  saveBooleanValue("kvizolamma/useserver", checked);
+                }}
+              />
+            }
+            label={getTranslation("use_server_url")}
+          />
         </Show>
       </Box>
-      <Button onClick={onBack} variant="contained" color="info">
+      <Button onClick={props.onBack} variant="contained" color="info">
         <Back />
       </Button>
     </Container>

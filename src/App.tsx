@@ -24,13 +24,7 @@ import { QuizSave } from "./components/game/QuizSave";
 import { GameSettings } from "./components/game/GameSettings";
 import { fetchPerplexityApi } from "./utils/llms";
 import { getLocalQuizes, getSelectedQuizes, getStringValue, saveLocalQuiz } from "./hooks/local";
-import {
-  fetchCdnAvailableQuizes,
-  getCdnQuiz,
-  getCustomQuiz,
-  getQuizTitle,
-  getQuizmUrl,
-} from "./utils";
+import { fetchCdnAvailableQuizes, getCustomQuiz, getQuizTitle, getQuizmUrl } from "./utils";
 import { GameAbout } from "./components/game/GameAbout";
 import { fetchOpenAIApi } from "./utils/llms/chatGPT";
 import { getFormattedSystemPrompt } from "./utils/llms/prompt";

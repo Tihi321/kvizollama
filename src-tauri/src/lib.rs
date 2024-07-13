@@ -15,7 +15,7 @@ use database::{
 use llm::requests::generate_quiz_questions;
 use serde_json::Error as SerdeError;
 use server::server::start_server;
-use tauri::Manager;
+use tauri::{Emitter, Listener, Manager};
 use tokio;
 use utils::{constants::WINDOW_LABEL, index::create_window};
 
@@ -41,7 +41,7 @@ pub async fn run() {
 
             let _ = create_window(&app).unwrap();
 
-            app.listen_any("generate_quiz", move |event| {
+            app.listen("generate_quiz", move |event| {
                 let value = event.payload();
                 let generate_quiz_handle_clone = generate_quiz_handle.clone();
                 match serde_json::from_str::<QuizQuestionRequest>(value) {
@@ -102,7 +102,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("save_quiz", move |event| {
+            app.listen("save_quiz", move |event| {
                 let value = event.payload();
                 match serde_json::from_str::<QuizQuestionSaveRequest>(value) {
                     Ok(payload) => {
@@ -122,7 +122,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("get_quizes", move |_| {
+            app.listen("get_quizes", move |_| {
                 let quizes = get_quizes().expect("Failed to get quizes");
                 // Use the app_handle to get the window by its label
                 if let Some(window) = get_quizes_handle.get_webview_window(WINDOW_LABEL) {
@@ -133,7 +133,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("get_server_quizes", move |_| {
+            app.listen("get_server_quizes", move |_| {
                 let quizes = get_server_quizes().expect("Failed to get quizes");
                 // Use the app_handle to get the window by its label
                 if let Some(window) = get_server_quizes_handle.get_webview_window(WINDOW_LABEL) {
@@ -144,7 +144,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("remove_quiz", move |event| {
+            app.listen("remove_quiz", move |event| {
                 let name = event.payload();
                 let clean_response = name.trim_start_matches('"').trim_end_matches('"');
                 remove_quiz(clean_response).expect("Failed to remove quiz");
@@ -158,7 +158,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("remove_server_quiz", move |event| {
+            app.listen("remove_server_quiz", move |event| {
                 let name = event.payload();
                 let clean_response = name.trim_start_matches('"').trim_end_matches('"');
                 remove_server_quiz(clean_response).expect("Failed to remove quiz");
@@ -172,7 +172,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("add_to_server_quiz", move |event| {
+            app.listen("add_to_server_quiz", move |event| {
                 let name = event.payload();
                 let clean_response = name.trim_start_matches('"').trim_end_matches('"');
                 let quiz_path = get_quiz_path(clean_response).expect("Failed to get quizes");
@@ -187,7 +187,7 @@ pub async fn run() {
                 }
             });
 
-            app.listen_any("import_quiz", move |event| {
+            app.listen("import_quiz", move |event| {
                 let values = event.payload();
                 // Attempt to parse the JSON payload into a Vec<String>
                 match serde_json::from_str::<Vec<String>>(values) {

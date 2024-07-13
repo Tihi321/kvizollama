@@ -239,7 +239,7 @@ pub fn get_server_quizes_response() -> Result<String, io::Error> {
             content = re.replace(&content, "").to_string();
 
             // Remove the last ']'
-            let re_end = Regex::new(r"\]$").unwrap();
+            let re_end = Regex::new(r"\]\s*$").unwrap();
             content = re_end.replace(&content, "").to_string();
 
             // Add a comma at the end
@@ -252,7 +252,7 @@ pub fn get_server_quizes_response() -> Result<String, io::Error> {
     if !quizes.is_empty() {
         // Remove the last comma
         let re = Regex::new(r",$").unwrap();
-        content = re.replace(&content, "").to_string();
+        quizes = re.replace(&quizes, "").to_string();
     }
 
     quizes.insert_str(0, "[");

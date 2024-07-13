@@ -115,8 +115,7 @@ export const App = () => {
     const url = getStringValue("kvizolamma/serverurl");
     if (useServer && url) {
       getCustomQuiz(url, "server").then((data) => {
-        console.log(data);
-        // setSelectedQuiz(data);
+        setSelectedQuiz(data);
         callback();
       });
     } else {

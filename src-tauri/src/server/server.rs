@@ -32,7 +32,7 @@ pub fn start_server() -> std::io::Result<()> {
 
         let mut response = match request.url() {
             "/" => Response::from_string("Server working"),
-            "/quizes-api" => match get_server_quizes_response() {
+            "/quiz" => match get_server_quizes_response() {
                 Ok(quizes) => Response::from_string(quizes),
                 Err(e) => {
                     eprintln!("Failed to get quizes: {}", e);
@@ -50,9 +50,7 @@ pub fn start_server() -> std::io::Result<()> {
         // Add Content-Type header based on the request URL
         let content_type_header = match request.url() {
             "/" => Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap(),
-            "/quizes-api" => {
-                Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap()
-            }
+            "/quiz" => Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap(),
             _ => Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap(),
         };
         response.add_header(content_type_header);

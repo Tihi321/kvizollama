@@ -36,6 +36,7 @@ import { fetchOpenAIApi } from "./utils/llms/chatGPT";
 import { getFormattedSystemPrompt } from "./utils/llms/prompt";
 import { useTranslations } from "./hooks/translations";
 import { getSelectedCombinedQuiz } from "./utils/quizes";
+import { BattleGame } from "./components/battle/BattleGame";
 
 const Container = styled("div")`
   display: flex;
@@ -83,13 +84,14 @@ export const App = () => {
   const [mounted, setMounted] = createSignal(false);
   const [language, setLanguage] = createSignal("");
   const [singleQuizStarted, setSingleQuizStarted] = createSignal(false);
+  const [battleQuizStarted, setBattleQuizStarted] = createSignal(false);
   const { getTranslation } = useTranslations();
 
   const systemLanguagePrompt = createMemo(() => {
     return getFormattedSystemPrompt(systemPrompt, language());
   });
 
-  const singleSelectedQuiz = createMemo(() => {
+  const selectedQuizData = createMemo(() => {
     return customQuizUrl() && selectedCustomQuiz()
       ? (selectedCustomQuiz() as QuizInfo)
       : (selectedQuiz() as QuizInfo);
@@ -102,6 +104,7 @@ export const App = () => {
   const showStart = createMemo(
     () =>
       !singleQuizStarted() &&
+      !battleQuizStarted() &&
       !generateQuiz() &&
       !loading() &&
       !showLoadQuiz() &&
@@ -261,9 +264,17 @@ export const App = () => {
               onClick={() => setSingleQuizStarted(true)}
               variant="contained"
               color="primary"
-              disabled={isEmpty(selectedQuiz())}
+              disabled={isEmpty(selectedQuizData())}
             >
               {getTranslation("start_single_quiz")}
+            </MenuButton>
+            <MenuButton
+              onClick={() => setBattleQuizStarted(true)}
+              variant="contained"
+              color="primary"
+              disabled={isEmpty(selectedQuizData())}
+            >
+              {getTranslation("battle_quiz")}
             </MenuButton>
             <MenuButton
               onClick={() => setShowSettingsQuiz(true)}
@@ -299,8 +310,11 @@ export const App = () => {
           <CircularProgress />
         </Box>
       </Show>
-      <Show when={singleQuizStarted() && !isEmpty(singleSelectedQuiz())}>
-        <QuizGame quiz={singleSelectedQuiz()} onBack={() => setSingleQuizStarted(false)} />
+      <Show when={singleQuizStarted() && !isEmpty(selectedQuizData())}>
+        <QuizGame quiz={selectedQuizData()} onBack={() => setSingleQuizStarted(false)} />
+      </Show>
+      <Show when={battleQuizStarted() && !isEmpty(selectedQuizData())}>
+        <BattleGame quiz={selectedQuizData()} onBack={() => setBattleQuizStarted(false)} />
       </Show>
       <Show when={showLoadQuiz()}>
         <QuizLoad

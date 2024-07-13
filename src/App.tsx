@@ -30,7 +30,7 @@ import {
   getStringValue,
   saveLocalQuiz,
 } from "./hooks/local";
-import { fetchCdnAvailableQuizes, getCustomQuiz, getQuizTitle, getQuizmUrl } from "./utils";
+import { fetchCdnAvailableQuizes, getCustomQuiz, getURLParams } from "./utils";
 import { GameAbout } from "./components/game/GameAbout";
 import { fetchOpenAIApi } from "./utils/llms/chatGPT";
 import { getFormattedSystemPrompt } from "./utils/llms/prompt";
@@ -148,7 +148,7 @@ export const App = () => {
       setCdnAvailableQuizes(response);
     });
 
-    const customQuizUrl = getQuizmUrl();
+    const customQuizUrl = getURLParams("quiz");
     if (customQuizUrl) {
       setCustomQuizUrl();
     }
@@ -161,7 +161,7 @@ export const App = () => {
       setCustomQuizUrl();
       setShowLoadQuiz(false);
       setLoading(true);
-      const customQuizTitle = getQuizTitle();
+      const customQuizTitle = getURLParams("title");
       getCustomQuiz(customQuizUrl() as string, customQuizTitle || "custom").then((data) => {
         setSelectedCustomQuiz(data);
         setLoading(false);
@@ -341,7 +341,7 @@ export const App = () => {
       <Show when={aboutQuiz()}>
         <GameAbout systemPrompt={systemLanguagePrompt()} onBack={() => setAboutQuiz(false)} />
       </Show>
-      <Footer />
+      {getURLParams("footer") !== "hide" && <Footer />}
     </Container>
   );
 };

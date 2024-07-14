@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@suid/material": "^0.16.0",
-    "@tauri-apps/plugin-dialog": "^2.0.0-beta.6",
+    "@tauri-apps/plugin-dialog": "^2.0.0-beta.7",
     "lodash": "^4.17.21",
     "solid-js": "^1.8.17",
     "solid-styled-components": "^0.28.5",

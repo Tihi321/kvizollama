@@ -16,6 +16,7 @@ import { ButtonHeaderContainer, HeaderInfo, StyledHeaderButton } from "./HeaderP
 import { checkWinCondition, createInitialBoard, moveSoldier } from "./logic";
 import { Cell, Question, Topic } from "./types";
 import { Back } from "../icons/Back";
+import { generateTopics } from "./utils";
 
 const Container = styled.div`
   max-width: 800px;
@@ -24,12 +25,7 @@ const Container = styled.div`
   position: relative;
 `;
 
-const MenuButton = styled(Button)`
-  width: 300px;
-`;
-
 interface BattleComponentProps {
-  topics: Topic[];
   questions: Question[];
   onBack: () => void;
   numberOfPlayers: number;
@@ -49,9 +45,12 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [showExplanation, setShowExplanation] = createSignal(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = createSignal<boolean | null>(null);
   const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
+  const [topics, setTopics] = createSignal<Topic[]>([]);
 
   const initializeBoard = () => {
-    const newBoard = createInitialBoard(props.topics, props.numberOfPlayers);
+    const newTopics = generateTopics(props.questions);
+    const newBoard = createInitialBoard(newTopics, props.numberOfPlayers);
+    setTopics(newTopics);
     setBoard(newBoard);
     setCurrentPlayer(1);
     setSelectedSquare(null);
@@ -183,7 +182,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       </GameBoard>
 
       <Legend>
-        <For each={props.topics}>
+        <For each={topics()}>
           {(topic) => (
             <LegendItem>
               <ColorSquare backgroundColor={topic.color} />

@@ -49,7 +49,6 @@ interface BattleGameProps {
 export const BattleGame: Component<BattleGameProps> = ({ quiz, onBack }) => {
   const [view, setView] = createSignal<"start" | "battle" | "settings">("start");
   const [questions, setQuestions] = createSignal<Question[]>([]);
-  const [topics, setTopics] = createSignal<Topic[]>([]);
   const [numberOfPlayers, setNumberOfPlayers] = createSignal(2);
   const [mounted, setMounted] = createSignal(false);
   const { getTranslation } = useTranslations();
@@ -57,7 +56,6 @@ export const BattleGame: Component<BattleGameProps> = ({ quiz, onBack }) => {
   onMount(() => {
     getAllQuestions(quiz.data).then((allQuestions) => {
       setQuestions(allQuestions);
-      setTopics(generateTopics(allQuestions));
       setMounted(true);
     });
   });
@@ -93,7 +91,6 @@ export const BattleGame: Component<BattleGameProps> = ({ quiz, onBack }) => {
       </Show>
       {view() === "battle" && (
         <BattleComponent
-          topics={topics()}
           questions={questions()}
           onBack={() => setView("start")}
           numberOfPlayers={numberOfPlayers() as number}

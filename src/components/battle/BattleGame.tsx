@@ -7,8 +7,7 @@ import { useTranslations } from "../../hooks/translations";
 import { Back } from "../icons/Back";
 import { BattleSettings } from "./BattleSettings";
 import { getAllQuestions } from "./question";
-import { generateTopics } from "./utils";
-import { Question, Topic } from "./types";
+import { Question } from "./types";
 import { BattleComponent } from "./BattleComponent";
 
 const LoaderContainer = styled.div`

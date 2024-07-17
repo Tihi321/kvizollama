@@ -8,8 +8,6 @@ const SettingsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 400px;
-  margin: 0 auto;
 `;
 
 const SettingRow = styled.div`
@@ -40,10 +38,6 @@ export const BattleSettings: Component<BattleSettingsProps> = ({
   return (
     <Container>
       <SettingsContainer>
-        <Typography variant="h4" component="h1">
-          Battle Settings
-        </Typography>
-
         <SettingRow>
           <Typography variant="body1">Number of Players:</Typography>
           <Select

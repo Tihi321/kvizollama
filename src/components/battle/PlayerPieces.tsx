@@ -1,12 +1,5 @@
 import { styled } from "solid-styled-components";
-
-export const Player = styled.div<{ active: boolean; player: number }>`
-  padding: 10px;
-  border-radius: 5px;
-  color: white;
-  background-color: ${(props) => (props.active ? getPlayerColor(props.player) : "#2c3e50")};
-  font-weight: ${(props) => (props.active ? "bold" : "normal")};
-`;
+import { getPlayerColor } from "./utils";
 
 const Soldier = styled.svg<{ player: number }>`
   position: absolute;
@@ -23,11 +16,6 @@ const Flag = styled.svg<{ player: number }>`
   top: 20%;
   left: 20%;
 `;
-
-const getPlayerColor = (player: number): string => {
-  const colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12"];
-  return colors[player - 1] || colors[0];
-};
 
 export const RenderSoldier = ({ player }: { player: number }) => (
   <Soldier viewBox="0 0 100 100" player={player}>

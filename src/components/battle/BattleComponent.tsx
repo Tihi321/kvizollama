@@ -1,29 +1,25 @@
 import { createSignal, For, Component, onMount } from "solid-js";
-import { styled } from "solid-styled-components";
-import { Button, Modal, Typography } from "@suid/material";
-import { Player, RenderFlag, RenderSoldier } from "./Pieces";
-import {
-  AnswerButton,
-  DifficultyBadge,
-  ExplanationText,
-  ModalContent,
-  ModalQuestion,
-  ModalTitleContainer,
-  RulesModalContent,
-} from "./ModalPieces";
-import { ColorSquare, GameBoard, Legend, LegendItem, Square } from "./GridPieces";
-import { ButtonHeaderContainer, HeaderInfo, StyledHeaderButton } from "./HeaderPieces";
+import { Button, Modal } from "@suid/material";
+import { RenderFlag, RenderSoldier } from "./PlayerPieces";
+import { RulesModalContent } from "./ModalPieces";
+import { GameBoard, Square } from "./GridPieces";
 import { checkWinCondition, createInitialBoard, moveSoldier } from "./logic";
 import { Cell, Question, Topic } from "./types";
 import { Back } from "../icons/Back";
 import { generateTopics } from "./utils";
-
-const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  position: relative;
-`;
+import {
+  ColorSquare,
+  Container,
+  Content,
+  GameMenu,
+  Legend,
+  LegendItem,
+  MenuButton,
+  Player,
+  Players,
+  Sidebar,
+} from "./GamePieces";
+import { BattleQuestion } from "./BattleQuestion";
 
 interface BattleComponentProps {
   questions: Question[];
@@ -61,10 +57,6 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setShowExplanation(false);
     setLastAnswerCorrect(null);
     setActivePlayers(Array.from({ length: props.numberOfPlayers }, (_, i) => i + 1));
-  };
-
-  const startNewGame = () => {
-    initializeBoard();
   };
 
   const selectSquare = (row: number, col: number) => {
@@ -121,8 +113,12 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         setTimeout(openQuestion, 3000);
       }
     } else {
-      nextPlayer();
-      setQuestionModalOpen(false);
+      setLastAnswerCorrect(isCorrect);
+      setShowExplanation(true);
+      setTimeout(() => {
+        nextPlayer();
+        setQuestionModalOpen(false);
+      }, 3000);
     }
   };
 
@@ -138,49 +134,48 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
 
   return (
     <Container>
-      <HeaderInfo>
-        <For each={activePlayers()}>
-          {(player) => (
-            <Player active={currentPlayer() === player} player={currentPlayer()}>
-              Player {player}:{" "}
-              {
-                board()
-                  .flat()
-                  .filter((cell) => cell.soldier?.player === player).length
-              }{" "}
-              soldiers
-            </Player>
-          )}
-        </For>
-        <ButtonHeaderContainer>
-          <StyledHeaderButton onClick={startNewGame}>New Game</StyledHeaderButton>
-          <StyledHeaderButton onClick={() => setRulesModalOpen(true)}>i</StyledHeaderButton>
-          <Button
-            variant="contained"
-            color="info"
-            onClick={props.onBack}
-            sx={{ marginTop: "20px" }}
-          >
-            <Back />
-          </Button>
-        </ButtonHeaderContainer>
-      </HeaderInfo>
-
-      <GameBoard>
-        <For each={board()}>
-          {(row, i) => (
-            <For each={row}>
-              {(cell, j) => (
-                <Square backgroundColor={cell.topic.color} onClick={() => selectSquare(i(), j())}>
-                  {cell.soldier && <RenderSoldier player={cell.soldier.player} />}
-                  {cell.flag && <RenderFlag player={cell.flag.player} />}
-                </Square>
+      <Content>
+        <GameBoard>
+          <For each={board()}>
+            {(row, i) => (
+              <For each={row}>
+                {(cell, j) => (
+                  <Square backgroundColor={cell.topic.color} onClick={() => selectSquare(i(), j())}>
+                    {cell.soldier && <RenderSoldier player={cell.soldier.player} />}
+                    {cell.flag && <RenderFlag player={cell.flag.player} />}
+                  </Square>
+                )}
+              </For>
+            )}
+          </For>
+        </GameBoard>
+        <Sidebar>
+          <Players>
+            <For each={activePlayers()}>
+              {(player) => (
+                <Player active={currentPlayer() === player} player={currentPlayer()}>
+                  <div>Player {player}: </div>
+                  <div>
+                    {
+                      board()
+                        .flat()
+                        .filter((cell) => cell.soldier?.player === player).length
+                    }{" "}
+                    soldiers
+                  </div>
+                </Player>
               )}
             </For>
-          )}
-        </For>
-      </GameBoard>
-
+          </Players>
+          <GameMenu>
+            <MenuButton onClick={initializeBoard}>New Game</MenuButton>
+            <MenuButton onClick={() => setRulesModalOpen(true)}>i</MenuButton>
+            <Button variant="contained" color="info" onClick={props.onBack} size="small">
+              <Back />
+            </Button>
+          </GameMenu>
+        </Sidebar>
+      </Content>
       <Legend>
         <For each={topics()}>
           {(topic) => (
@@ -191,7 +186,6 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           )}
         </For>
       </Legend>
-
       <Modal
         open={questionModalOpen()}
         onClose={() => {
@@ -199,33 +193,21 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           setQuestionModalOpen(false);
         }}
       >
-        <ModalContent>
-          <ModalTitleContainer>
-            <h2>{currentQuestion()?.topic}</h2>
-            <DifficultyBadge difficulty={currentQuestion()?.difficulty || "medium"}>
-              {currentQuestion()?.difficulty}
-            </DifficultyBadge>
-          </ModalTitleContainer>
-
-          <ModalQuestion>{currentQuestion()?.question}</ModalQuestion>
-          {!showExplanation() && (
-            <For each={currentQuestion()?.answers}>
-              {(answer, index) => (
-                <AnswerButton onClick={() => checkAnswer(index())}>{answer.answer}</AnswerButton>
-              )}
-            </For>
-          )}
-          {showExplanation() && (
-            <>
-              <Typography variant="h6" color={lastAnswerCorrect() ? "success" : "error"}>
-                {lastAnswerCorrect() ? "Correct!" : "Incorrect!"}
-              </Typography>
-              {lastAnswerCorrect() && (
-                <ExplanationText>{currentQuestion()?.explanation}</ExplanationText>
-              )}
-            </>
-          )}
-        </ModalContent>
+        <BattleQuestion
+          onClose={() => {
+            nextPlayer();
+            setQuestionModalOpen(false);
+          }}
+          topic={currentQuestion()?.topic}
+          difficulty={currentQuestion()?.difficulty}
+          title={currentQuestion()?.question}
+          question={currentQuestion()?.question}
+          explanation={currentQuestion()?.explanation}
+          answers={currentQuestion()?.answers}
+          correct={lastAnswerCorrect()}
+          showExplanation={showExplanation()}
+          onAnswerSelect={checkAnswer}
+        />
       </Modal>
 
       <Modal open={rulesModalOpen()} onClose={() => setRulesModalOpen(false)}>

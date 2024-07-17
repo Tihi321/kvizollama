@@ -461,7 +461,14 @@
   resolved "https://registry.yarnpkg.com/@suid/css/-/css-0.4.0.tgz#e48bc2172225cf11361cb9568a885bd40f03311f"
   integrity sha512-yzHAlf1CVi7n0SvUrMgs8Z49UiS9669+td1w1frekhRQuRbkXhHoyJkvovaDVJlWRmCPA8Q0f1OTr0uDCUg9mQ==
 
-"@suid/material@^0.16.0":
+"@suid/icons-material@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@suid/icons-material/-/icons-material-0.7.0.tgz#4942cddf99b2642102024822235b94d3ae358bf5"
+  integrity sha512-d40gG5GBE/UrUYvVkf53zzhmNIV9eb4z52DUON2fGidprf/LkD4WdamwHKS1QfElvHnuaOci1VjV6cHdblzPBQ==
+  dependencies:
+    "@suid/material" "0.16.0"
+
+"@suid/material@0.16.0", "@suid/material@^0.16.0":
   version "0.16.0"
   resolved "https://registry.yarnpkg.com/@suid/material/-/material-0.16.0.tgz#340c51a70d9dd7b85faf67eaf9e8a20fa5b8b243"
   integrity sha512-qr/xdkl8Ekp+GO4m5VhXLi/CBrmUXALc8MP75p8y+0ZMXB+RLwSsZK1z1i9EjmEsmR5RC6G9VFJPWrpMI7j32A==

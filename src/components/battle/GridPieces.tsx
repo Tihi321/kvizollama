@@ -3,7 +3,9 @@ export const GameBoard = styled.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 5px;
-  margin-top: 20px;
+  width: 100%;
+  height: fit-content;
+  border: 1px solid ${(props) => props?.theme?.colors.border};
 `;
 
 export const Square = styled.div<{ backgroundColor: string }>`
@@ -31,24 +33,4 @@ export const Square = styled.div<{ backgroundColor: string }>`
   &:hover {
     opacity: 0.8;
   }
-`;
-
-export const Legend = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 20px;
-`;
-
-export const LegendItem = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 5px 10px;
-`;
-
-export const ColorSquare = styled.div<{ backgroundColor: string }>`
-  width: 20px;
-  height: 20px;
-  background-color: ${(props) => props.backgroundColor};
-  margin-right: 5px;
 `;

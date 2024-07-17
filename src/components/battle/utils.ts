@@ -1,5 +1,10 @@
 import { Question, Topic } from "./types";
 
+export const getPlayerColor = (player: number): string => {
+  const colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12"];
+  return colors[player - 1] || colors[0];
+};
+
 // Function to generate a vibrant color
 const getVibrantColor = (): string => {
   const hue = Math.floor(Math.random() * 360);

@@ -14,7 +14,19 @@ export const Square = styled.div<{ backgroundColor: string }>`
   cursor: pointer;
   transition: background-color 0.3s;
   position: relative;
-  background-color: ${(props) => props.backgroundColor};
+  background-color: ${(props) => props?.theme?.colors.lightBackground};
+
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: ${(props) => props.backgroundColor};
+  }
 
   &:hover {
     opacity: 0.8;

@@ -49,8 +49,8 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
 
   const initializeBoard = () => {
     const newTopics = generateTopics(props.questions);
-    const newBoard = createInitialBoard(newTopics, props.numberOfPlayers);
     setTopics(newTopics);
+    const newBoard = createInitialBoard(newTopics, props.numberOfPlayers);
     setBoard(newBoard);
     setCurrentPlayer(1);
     setSelectedSquare(null);

@@ -1,6 +1,6 @@
-import Close from "@suid/icons-material/close";
 import { Button, IconButton } from "@suid/material";
 import { styled } from "solid-styled-components";
+import { Close } from "../icons/Close";
 
 export const ModalContent = styled.div`
   padding: 20px;

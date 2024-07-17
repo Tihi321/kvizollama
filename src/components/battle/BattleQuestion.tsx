@@ -15,8 +15,8 @@ import {
   ModalQuestionInfo,
   ModalTitle,
 } from "./ModalPieces";
-import Close from "@suid/icons-material/close";
 import { Echo } from "../icons/Echo";
+import { Close } from "../icons/Close";
 
 interface BattleQuestionProps {
   topic?: string;

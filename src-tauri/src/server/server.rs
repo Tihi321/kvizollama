@@ -12,10 +12,10 @@ pub fn start_server() -> std::io::Result<()> {
     let port = 5318;
     println!("Attempting to start server on all interfaces...");
     println!(
-        "Server should be accessible at http://{}:{}",
+        "Server should be accessible at http://{}:{}/quiz",
         local_ip, port
     );
-    println!("You can also access it via http://localhost:{}", port);
+    println!("You can also access it via http://localhost:{}/quiz", port);
 
     let server = Server::http(("0.0.0.0", port)).map_err(|e| {
         eprintln!("Failed to bind server: {}", e);

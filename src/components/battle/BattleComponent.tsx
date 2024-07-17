@@ -195,7 +195,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       <Modal
         open={questionModalOpen()}
         onClose={() => {
-          setCurrentPlayer(currentPlayer() === 1 ? 2 : 1);
+          nextPlayer();
           setQuestionModalOpen(false);
         }}
       >

@@ -1,35 +1,59 @@
 import { Cell, Topic } from "./types";
 
-const placePieces = (board: Cell[][], row: number, col: number, player: number): Cell[][] => {
+const placePieces = (board: Cell[][], player: number): Cell[][] => {
   const newBoard = board.map((row) => [...row]);
-  newBoard[row][col].flag = { player };
-  const positions =
-    player === 1
-      ? [
-          [row, col + 1],
-          [row + 1, col],
-          [row + 1, col + 1],
-          [row, col + 2],
-          [row + 2, col],
-        ]
-      : [
-          [row, col - 1],
-          [row - 1, col],
-          [row - 1, col - 1],
-          [row, col - 2],
-          [row - 2, col],
-        ];
+  const positions = [
+    [0, 0], // Player 1
+    [7, 7], // Player 2
+    [0, 7], // Player 3
+    [7, 0], // Player 4
+  ];
 
-  positions.forEach(([r, c]) => {
+  const [row, col] = positions[player - 1];
+  newBoard[row][col].flag = { player };
+
+  const soldierPositions = [
+    [
+      [row, col + 1],
+      [row + 1, col],
+      [row + 1, col + 1],
+      [row, col + 2],
+      [row + 2, col],
+    ],
+    [
+      [row, col - 1],
+      [row - 1, col],
+      [row - 1, col - 1],
+      [row, col - 2],
+      [row - 2, col],
+    ],
+    [
+      [row, col - 1],
+      [row + 1, col],
+      [row + 1, col - 1],
+      [row, col - 2],
+      [row + 2, col],
+    ],
+    [
+      [row, col + 1],
+      [row - 1, col],
+      [row - 1, col + 1],
+      [row, col + 2],
+      [row - 2, col],
+    ],
+  ];
+
+  soldierPositions[player - 1].forEach(([r, c]) => {
     if (r >= 0 && r < 8 && c >= 0 && c < 8) {
       newBoard[r][c].soldier = { player };
     }
   });
+
   return newBoard;
 };
 
-export const createInitialBoard = (topics: Topic[]): Cell[][] => {
-  const newBoard: Cell[][] = [];
+export const createInitialBoard = (topics: Topic[], numberOfPlayers: number): Cell[][] => {
+  let newBoard: Cell[][] = [];
   for (let i = 0; i < 8; i++) {
     newBoard[i] = [];
     for (let j = 0; j < 8; j++) {
@@ -37,7 +61,12 @@ export const createInitialBoard = (topics: Topic[]): Cell[][] => {
       newBoard[i][j] = { topic, soldier: null, flag: null };
     }
   }
-  return placePieces(placePieces(newBoard, 0, 0, 1), 7, 7, 2);
+
+  for (let player = 1; player <= numberOfPlayers; player++) {
+    newBoard = placePieces(newBoard, player);
+  }
+
+  return newBoard;
 };
 
 export const moveSoldier = (
@@ -54,13 +83,34 @@ export const moveSoldier = (
   return newBoard;
 };
 
-export const checkWinCondition = (board: Cell[][], currentPlayer: number): boolean => {
-  const opponentPlayer = currentPlayer === 1 ? 2 : 1;
-  const opponentFlagPosition = opponentPlayer === 1 ? { row: 0, col: 0 } : { row: 7, col: 7 };
+export const checkWinCondition = (
+  board: Cell[][],
+  currentPlayer: number,
+  activePlayers: number[]
+): boolean => {
+  // Check if current player has captured any opponent's flag
+  const flagPositions = [
+    { row: 0, col: 0 },
+    { row: 7, col: 7 },
+    { row: 0, col: 7 },
+    { row: 7, col: 0 },
+  ];
 
-  if (board[opponentFlagPosition.row][opponentFlagPosition.col].soldier?.player === currentPlayer) {
-    return true;
+  for (let player of activePlayers) {
+    if (player !== currentPlayer) {
+      const flagPos = flagPositions[player - 1];
+      if (board[flagPos.row][flagPos.col].soldier?.player === currentPlayer) {
+        return true;
+      }
+    }
   }
 
-  return !board.some((row) => row.some((cell) => cell.soldier?.player === opponentPlayer));
+  // Check if current player is the only one with soldiers left
+  const playersWithSoldiers = new Set(
+    board.flatMap((row) =>
+      row.filter((cell) => cell.soldier !== null).map((cell) => cell.soldier!.player)
+    )
+  );
+
+  return playersWithSoldiers.size === 1 && playersWithSoldiers.has(currentPlayer);
 };

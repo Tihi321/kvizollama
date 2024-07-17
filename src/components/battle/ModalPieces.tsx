@@ -78,22 +78,34 @@ export const AnswerButton = styled.button`
   }
 `;
 
-export const RulesModalContent = ({ onClose }: { onClose: () => void }) => {
+export const RulesModalContent = ({
+  onClose,
+  numberOfPlayers,
+}: {
+  onClose: () => void;
+  numberOfPlayers: number;
+}) => {
   return (
     <ModalContent>
       <CloseButton onClick={onClose}>&times;</CloseButton>
-      <h2>Game Rules</h2>
+      <h2>Game Rules ({numberOfPlayers}-Player Mode)</h2>
       <ul>
-        <li>Each player starts with 5 soldiers in a triangle formation around their flag.</li>
-        <li>White soldiers belong to Player 1, black soldiers to Player 2.</li>
+        <li>
+          Each player starts with 5 soldiers in a formation around their flag in one corner of the
+          board.
+        </li>
+        <li>
+          Players have different colored soldiers: Player 1 (Blue), Player 2 (Red), Player 3
+          (Green), Player 4 (Orange).
+        </li>
         <li>Players take turns moving their soldiers.</li>
         <li>To move, a player must correctly answer a question related to the square's topic.</li>
         <li>If attacking an opponent's square, the player must answer 2 questions correctly.</li>
         <li>Soldiers can move to adjacent squares (up, down, left, right).</li>
-        <li>The goal is to capture the opponent's flag in their corner.</li>
+        <li>The goal is to capture an opponent's flag or eliminate all other players' soldiers.</li>
         <li>
-          The game ends when a player captures the opponent's flag or when all opponent's soldiers
-          are eliminated.
+          The game ends when a player captures an opponent's flag or when only one player has
+          soldiers remaining on the board.
         </li>
       </ul>
     </ModalContent>

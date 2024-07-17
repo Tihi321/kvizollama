@@ -1,6 +1,6 @@
-import { createSignal, createEffect, For, Component } from "solid-js";
+import { createSignal, For, Component, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
-import { Modal, Typography } from "@suid/material";
+import { Button, Modal, Typography } from "@suid/material";
 import { Player, RenderFlag, RenderSoldier } from "./Pieces";
 import {
   AnswerButton,
@@ -15,6 +15,7 @@ import { ColorSquare, GameBoard, Legend, LegendItem, Square } from "./GridPieces
 import { ButtonHeaderContainer, HeaderInfo, StyledHeaderButton } from "./HeaderPieces";
 import { checkWinCondition, createInitialBoard, moveSoldier } from "./logic";
 import { Cell, Question, Topic } from "./types";
+import { Back } from "../icons/Back";
 
 const Container = styled.div`
   max-width: 800px;
@@ -23,9 +24,15 @@ const Container = styled.div`
   position: relative;
 `;
 
+const MenuButton = styled(Button)`
+  width: 300px;
+`;
+
 interface BattleComponentProps {
   topics: Topic[];
   questions: Question[];
+  onBack: () => void;
+  numberOfPlayers: number;
 }
 
 export const BattleComponent: Component<BattleComponentProps> = (props) => {
@@ -41,9 +48,10 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [rulesModalOpen, setRulesModalOpen] = createSignal(false);
   const [showExplanation, setShowExplanation] = createSignal(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = createSignal<boolean | null>(null);
+  const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
 
   const initializeBoard = () => {
-    const newBoard = createInitialBoard(props.topics);
+    const newBoard = createInitialBoard(props.topics, props.numberOfPlayers);
     setBoard(newBoard);
     setCurrentPlayer(1);
     setSelectedSquare(null);
@@ -53,6 +61,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setQuestionModalOpen(false);
     setShowExplanation(false);
     setLastAnswerCorrect(null);
+    setActivePlayers(Array.from({ length: props.numberOfPlayers }, (_, i) => i + 1));
   };
 
   const startNewGame = () => {
@@ -100,11 +109,11 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           const newBoard = moveSoldier(board(), selectedSquare()!, targetSquare()!);
           setBoard(newBoard);
           setQuestionModalOpen(false);
-          if (checkWinCondition(newBoard, currentPlayer())) {
+          if (checkWinCondition(newBoard, currentPlayer(), activePlayers())) {
             alert(`Player ${currentPlayer()} wins!`);
             initializeBoard();
           } else {
-            setCurrentPlayer(currentPlayer() === 1 ? 2 : 1);
+            nextPlayer();
           }
           setSelectedSquare(null);
           setTargetSquare(null);
@@ -113,39 +122,48 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         setTimeout(openQuestion, 3000);
       }
     } else {
-      setCurrentPlayer(currentPlayer() === 1 ? 2 : 1);
+      nextPlayer();
       setQuestionModalOpen(false);
     }
   };
 
-  createEffect(() => {
+  const nextPlayer = () => {
+    const currentIndex = activePlayers().indexOf(currentPlayer());
+    const nextIndex = (currentIndex + 1) % activePlayers().length;
+    setCurrentPlayer(activePlayers()[nextIndex]);
+  };
+
+  onMount(() => {
     initializeBoard();
   });
 
   return (
     <Container>
       <HeaderInfo>
-        <Player active={currentPlayer() === 1}>
-          Player 1:{" "}
-          {
-            board()
-              .flat()
-              .filter((cell) => cell.soldier?.player === 1).length
-          }{" "}
-          soldiers
-        </Player>
-        <Player active={currentPlayer() === 2}>
-          Player 2:{" "}
-          {
-            board()
-              .flat()
-              .filter((cell) => cell.soldier?.player === 2).length
-          }{" "}
-          soldiers
-        </Player>
+        <For each={activePlayers()}>
+          {(player) => (
+            <Player active={currentPlayer() === player} player={currentPlayer()}>
+              Player {player}:{" "}
+              {
+                board()
+                  .flat()
+                  .filter((cell) => cell.soldier?.player === player).length
+              }{" "}
+              soldiers
+            </Player>
+          )}
+        </For>
         <ButtonHeaderContainer>
           <StyledHeaderButton onClick={startNewGame}>New Game</StyledHeaderButton>
           <StyledHeaderButton onClick={() => setRulesModalOpen(true)}>i</StyledHeaderButton>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={props.onBack}
+            sx={{ marginTop: "20px" }}
+          >
+            <Back />
+          </Button>
         </ButtonHeaderContainer>
       </HeaderInfo>
 
@@ -212,7 +230,10 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       </Modal>
 
       <Modal open={rulesModalOpen()} onClose={() => setRulesModalOpen(false)}>
-        <RulesModalContent onClose={() => setRulesModalOpen(false)} />
+        <RulesModalContent
+          onClose={() => setRulesModalOpen(false)}
+          numberOfPlayers={props.numberOfPlayers}
+        />
       </Modal>
     </Container>
   );

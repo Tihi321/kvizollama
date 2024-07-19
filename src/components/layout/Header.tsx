@@ -8,13 +8,17 @@ const Container = styled("div")`
   position: relative;
   background-color: ${(props) => props?.theme?.colors.darkBackground};
   color: ${(props) => props?.theme?.colors.text};
-  padding: 16px;
+  padding: 8px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 `;
 
 const Options = styled(Box)`
   display: flex;
   flex-direction: row;
+  align-items: center;
+  width: 100%;
 
   .MuiInputBase-root {
     font-size: 14px;
@@ -37,14 +41,19 @@ const TitleText = styled("h3")`
   left: 50%;
   transform: translateX(-50%);
   color: ${(props) => props?.theme?.colors.text};
-  font-size: 24px;
+  font-size: 18px;
   line-height: 1;
   margin: 0;
   flex: 1;
 
   @media (min-width: 700px) {
-    margin-bottom: 10px;
-    font-size: 32px;
+    font-size: 24px;
+  }
+`;
+
+const SelectContainer = styled("div")`
+  .MuiOutlinedInput-root {
+    font-size: 12px;
   }
 `;
 
@@ -73,17 +82,19 @@ export const Header: Component<HeaderProps> = (props) => {
       <TitleText>Kvizollama</TitleText>
       <Options sx={{ justifyContent: props.langugage ? "space-between" : "flex-end" }}>
         {props.langugage && (
-          <Select
-            value={language()}
-            onChange={(e) => {
-              saveStringValue("language", e.target.value);
-              setLanguage(e.target.value);
-              window.location.reload();
-            }}
-          >
-            <MenuItem value="english">Eng</MenuItem>
-            <MenuItem value="croatian">Hr</MenuItem>
-          </Select>
+          <SelectContainer>
+            <Select
+              value={language()}
+              onChange={(e) => {
+                saveStringValue("language", e.target.value);
+                setLanguage(e.target.value);
+                window.location.reload();
+              }}
+            >
+              <MenuItem value="english">Eng</MenuItem>
+              <MenuItem value="croatian">Hr</MenuItem>
+            </Select>
+          </SelectContainer>
         )}
 
         <IconButtonStyled

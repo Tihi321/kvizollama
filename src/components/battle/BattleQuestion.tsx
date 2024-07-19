@@ -118,6 +118,7 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
           <For each={props.answers}>
             {(answer, index) => (
               <AnswerButton
+                style={{ order: Math.floor(Math.random() * 11) }}
                 onClick={() => {
                   stopSpeaking();
                   props.onAnswerSelect(index());

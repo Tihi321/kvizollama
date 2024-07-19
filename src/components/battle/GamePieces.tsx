@@ -74,10 +74,10 @@ export const Players = styled.div`
   gap: 16px;
 `;
 
-export const Player = styled.div<{ active: boolean; player: number }>`
+export const Player = styled.div<{ active: boolean; player: number; backgroundColor?: string }>`
   padding: 10px;
   border-radius: 5px;
   color: white;
-  background-color: ${(props) => (props.active ? getPlayerColor(props.player) : "#2c3e50")};
+  background-color: ${(props) => (props.backgroundColor ? props.backgroundColor : "#2c3e50")};
   font-weight: ${(props) => (props.active ? "bold" : "normal")};
 `;

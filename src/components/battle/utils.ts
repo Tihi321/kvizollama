@@ -1,6 +1,11 @@
+import { getStringValue } from "../../hooks/local";
 import { Question, Topic } from "./types";
 
 export const getPlayerColor = (player: number): string => {
+  const customColor = getStringValue(`kvizolamma/player${player}Color`);
+  if (customColor) {
+    return customColor;
+  }
   const colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12"];
   return colors[player - 1] || colors[0];
 };

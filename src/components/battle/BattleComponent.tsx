@@ -1,4 +1,4 @@
-import { createSignal, For, Component, onMount } from "solid-js";
+import { createSignal, For, Component, onMount, createEffect } from "solid-js";
 import { Button, Modal } from "@suid/material";
 import { RenderFlag, RenderSoldier } from "./PlayerPieces";
 import { RulesModalContent } from "./ModalPieces";
@@ -20,6 +20,7 @@ import {
   Sidebar,
 } from "./GamePieces";
 import { BattleQuestion } from "./BattleQuestion";
+import { getStringValue } from "../../hooks/local";
 
 interface BattleComponentProps {
   questions: Question[];
@@ -42,6 +43,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [lastAnswerCorrect, setLastAnswerCorrect] = createSignal<boolean | null>(null);
   const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
   const [topics, setTopics] = createSignal<Topic[]>([]);
+  const [, setColorUpdate] = createSignal(0);
 
   const initializeBoard = () => {
     const newTopics = generateTopics(props.questions);
@@ -132,6 +134,16 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     initializeBoard();
   });
 
+  createEffect(() => {
+    const colorChangeListener = () => {
+      setColorUpdate((prev) => prev + 1);
+    };
+    window.addEventListener("storage", colorChangeListener);
+    return () => {
+      window.removeEventListener("storage", colorChangeListener);
+    };
+  });
+
   return (
     <Container>
       <Content>
@@ -153,7 +165,11 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           <Players>
             <For each={activePlayers()}>
               {(player) => (
-                <Player active={currentPlayer() === player} player={currentPlayer()}>
+                <Player
+                  active={currentPlayer() === player}
+                  player={player}
+                  backgroundColor={getStringValue(`kvizolamma/player${player}Color`)}
+                >
                   <div>Player {player}: </div>
                   <div>
                     {

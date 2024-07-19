@@ -1,11 +1,12 @@
-import { Component, createMemo, createSignal, onMount } from "solid-js";
+import { Component, createMemo, createSignal, For, onMount } from "solid-js";
 import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Box } from "@suid/material";
 import { GenerateFormData, GenerateFormOptions } from "../../types";
 import { Container } from "../layout/Container";
 import { getStringValue } from "../../hooks/local";
-import { isEmpty } from "lodash";
+import { get, isEmpty, map } from "lodash";
 import { Back } from "../icons/Back";
 import { useTranslations } from "../../hooks/translations";
+import { formatLldRequest } from "../../utils/llms/prompt";
 
 interface GenerateFormProps {
   onGenerate: (formData: GenerateFormData, options: GenerateFormOptions) => void;
@@ -18,7 +19,7 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
   const [localModel, setLocalModel] = createSignal("qwen2:7b");
   const [openAIModel, setOpenAIModel] = createSignal("gpt-3.5-turbo");
   const [name, setName] = createSignal("");
-  const [topics, setTopics] = createSignal("");
+  const [topics, setTopics] = createSignal<Array<{ title: string; description: string }>>([]);
   const [difficulty, setDifficulty] = createSignal("normal");
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
   const [maxPointsPerQuestion, setMaxPointsPerQuestion] = createSignal(10);
@@ -42,6 +43,12 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
     };
   });
 
+  const topicsArray = createMemo(() => {
+    return map(topics(), (values) =>
+      values.description ? `${values.title} (${values.description})` : values.title
+    );
+  });
+
   const disabled = createMemo(() => {
     return !type() || !name() || !topics() || !questionsPerTopic() || !maxPointsPerQuestion();
   });
@@ -53,9 +60,7 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
     }
 
     const formData: GenerateFormData = {
-      topics: topics()
-        .split(",")
-        .map((s) => s.trim()),
+      topics: topicsArray(),
       difficulty: difficulty(),
       num_questions: questionsPerTopic(),
       max_points: maxPointsPerQuestion(),
@@ -64,6 +69,22 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
     const { model, api } = modelData();
 
     onGenerate(formData, { model, name: name(), type: type(), api });
+  };
+
+  const handleTopicChange = (index: number, title: string, description: string) => {
+    setTopics((prevTopics) => {
+      const newTopics = [...prevTopics];
+      newTopics[index] = { title, description };
+      return newTopics;
+    });
+  };
+
+  const addTopicField = () => {
+    setTopics((prevTopics) => [...prevTopics, { title: "", description: "" }]);
+  };
+
+  const removeTopicField = (index: number) => {
+    setTopics((prevTopics) => prevTopics.filter((_, i) => i !== index));
   };
 
   return (
@@ -111,13 +132,40 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
           onChange={(e) => setName(e.target.value)}
           margin="normal"
         />
-        <TextField
-          fullWidth
-          label={getTranslation("topics")}
-          value={topics()}
-          onChange={(e) => setTopics(e.target.value)}
-          margin="normal"
-        />
+        <For each={topics()}>
+          {(topic, index) => (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <TextField
+                fullWidth
+                label={`${getTranslation("topic")} ${index() + 1}`}
+                defaultValue={get(topic, ["title"], "")}
+                onBlur={(event: any) =>
+                  handleTopicChange(
+                    index(),
+                    event.target.value,
+                    get(topics(), [index(), "description"], "")
+                  )
+                }
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label={`${getTranslation("description")} ${index() + 1}`}
+                defaultValue={get(topic, ["description"], "")}
+                onBlur={(event: any) =>
+                  handleTopicChange(
+                    index(),
+                    get(topics(), [index(), "title"], ""),
+                    event.target.value
+                  )
+                }
+                margin="normal"
+              />
+              <Button onClick={() => removeTopicField(index())}>Remove</Button>
+            </Box>
+          )}
+        </For>
+        <Button onClick={addTopicField}>Add Topic</Button>
         <FormControl fullWidth margin="normal">
           <InputLabel>{getTranslation("difficulty")}</InputLabel>
           <Select value={difficulty()} onChange={(e) => setDifficulty(e.target.value)}>
@@ -155,9 +203,33 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
           <Button variant="contained" color="info" onClick={onBack}>
             <Back />
           </Button>
-          <Button disabled={disabled()} type="submit" variant="contained" color="primary">
-            {getTranslation("generate")}
-          </Button>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+            }}
+          >
+            <Button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  formatLldRequest(
+                    topicsArray(),
+                    difficulty(),
+                    questionsPerTopic(),
+                    maxPointsPerQuestion()
+                  )
+                );
+              }}
+              variant="contained"
+              color="primary"
+            >
+              {getTranslation("copy_quiz_prompt")}
+            </Button>
+            <Button disabled={disabled()} type="submit" variant="contained" color="primary">
+              {getTranslation("generate")}
+            </Button>
+          </Box>
         </Box>
       </form>
     </Container>

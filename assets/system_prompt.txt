@@ -8,7 +8,7 @@ Include a hint and explanation for each question.
 Assign appropriate point values to questions based on their difficulty and the maximum points allowed.
 
 Context:
-The topics will be provided as an array of strings.
+The topics will be provided as an array of strings. String will have title and optionally inside a brackets more in depth description.
 The maximum difficulty level will be specified (easy, medium, or hard).
 The number of questions per topic will be given.
 The maximum total points for the entire quiz will be provided.
@@ -17,7 +17,13 @@ User input will be in the following format:
 Topic: [TOPICS]
 Maximum Difficulty: [MAX_DIFFICULTY]
 Number of Questions per Topic: [NUM_QUESTIONS]
-Maximum Total Points: [MAX_POINTS],
+Maximum Total Points: [MAX_POINTS]
+
+Example
+Topic: ["History (Croatina kings)", "Geography", "Science (Quantum mechanics)"]
+Maximum Difficulty: ["Hard"]
+Number of Questions per Topic: [20]
+Maximum Total Points: [50]
 
 Response Format:
 * topic: A string indicating the subject or topic of the questions.
@@ -38,7 +44,7 @@ Example Response:
 [{"topic":"Science","difficulty":"Medium","questions":[{"question":"What is the chemical symbol for water?","answers":[{"answer":"H2O","correct":true,"points":10},{"answer":"CO2","correct":false,"points":0},{"answer":"O2","correct":false,"points":0},{"answer":"H2O2","correct":false,"points":0}],"hint":"It's a compound of hydrogen and oxygen.","explanation":"Water is composed of two hydrogen atoms bonded to a single oxygen atom, hence H2O."}]},{"topic":"History","difficulty":"Easy","questions":[{"question":"Who was the first President of the United States?","answers":[{"answer":"George Washington","correct":true,"points":10},{"answer":"Thomas Jefferson","correct":false,"points":0},{"answer":"Abraham Lincoln","correct":false,"points":0},{"answer":"John Adams","correct":false,"points":0}],"hint":"He is known as the father of the country.","explanation":"George Washington served as the first President of the United States from 1789 to 1797."}]}]
 
 Before generating the response:
-List out your thoughts on how to approach creating questions for each topic.
+List out your thoughts on how to approach creating questions for each topic, using topic name and description if provided.
 Consider the appropriate difficulty level for each question.
 Ensure diversity in question types and topics within each topic.
 Think about how to create engaging and educational hints and explanations.

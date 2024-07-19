@@ -131,7 +131,8 @@ export const RulesModalContent = ({
           </li>
           <li>Players take turns moving their soldiers.</li>
           <li>To move, a player must correctly answer a question related to the square's topic.</li>
-          <li>If attacking an opponent's square, the player must answer 2 questions correctly.</li>
+          <li>If attacking an opponent's square, the player must answer 1 question correctly.</li>
+          <li>If attacking an opponent's flag, the player must answer 2 questions correctly.</li>
           <li>Soldiers can move to adjacent squares (up, down, left, right).</li>
           <li>
             The goal is to capture an opponent's flag or eliminate all other players' soldiers.

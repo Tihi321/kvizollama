@@ -36,13 +36,14 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   );
   const [targetSquare, setTargetSquare] = createSignal<{ row: number; col: number } | null>(null);
   const [currentQuestion, setCurrentQuestion] = createSignal<Question | null>(null);
-  const [questionCount, setQuestionCount] = createSignal(0);
+  const [correctAnswers, setCorrectAnswers] = createSignal(0);
   const [questionModalOpen, setQuestionModalOpen] = createSignal(false);
   const [rulesModalOpen, setRulesModalOpen] = createSignal(false);
   const [showExplanation, setShowExplanation] = createSignal(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = createSignal<boolean | null>(null);
   const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
   const [topics, setTopics] = createSignal<Topic[]>([]);
+  const [isAttackingFlag, setIsAttackingFlag] = createSignal(false);
   const [, setColorUpdate] = createSignal(0);
 
   const initializeBoard = () => {
@@ -54,7 +55,6 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setSelectedSquare(null);
     setTargetSquare(null);
     setCurrentQuestion(null);
-    setQuestionCount(0);
     setQuestionModalOpen(false);
     setShowExplanation(false);
     setLastAnswerCorrect(null);
@@ -69,7 +69,8 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       const dy = Math.abs(col - selectedSquare()!.col);
       if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
         setTargetSquare({ row, col });
-        setQuestionCount(0);
+        setCorrectAnswers(0);
+        setIsAttackingFlag(board()[row][col].flag !== null);
         openQuestion();
       }
     }
@@ -96,8 +97,10 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setShowExplanation(true);
 
     if (isCorrect) {
-      setQuestionCount((count) => count + 1);
-      if (questionCount() === 1 || !board()[targetSquare()!.row][targetSquare()!.col].soldier) {
+      setCorrectAnswers((count) => count + 1);
+      const requiredCorrectAnswers = isAttackingFlag() ? 2 : 1;
+
+      if (correctAnswers() === requiredCorrectAnswers) {
         setTimeout(() => {
           const newBoard = moveSoldier(board(), selectedSquare()!, targetSquare()!);
           setBoard(newBoard);
@@ -115,7 +118,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         setTimeout(openQuestion, 3000);
       }
     } else {
-      setLastAnswerCorrect(isCorrect);
+      setLastAnswerCorrect(false);
       setShowExplanation(true);
       setTimeout(() => {
         nextPlayer();
@@ -130,10 +133,6 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setCurrentPlayer(activePlayers()[nextIndex]);
   };
 
-  onMount(() => {
-    initializeBoard();
-  });
-
   createEffect(() => {
     const colorChangeListener = () => {
       setColorUpdate((prev) => prev + 1);
@@ -142,6 +141,10 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     return () => {
       window.removeEventListener("storage", colorChangeListener);
     };
+  });
+
+  onMount(() => {
+    initializeBoard();
   });
 
   return (
@@ -223,6 +226,8 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           correct={lastAnswerCorrect()}
           showExplanation={showExplanation()}
           onAnswerSelect={checkAnswer}
+          isAttackingFlag={isAttackingFlag()}
+          correctAnswers={correctAnswers()}
         />
       </Modal>
 

@@ -29,6 +29,8 @@ interface BattleQuestionProps {
   showExplanation?: boolean;
   onAnswerSelect: (answerIndex: number) => void;
   onClose: () => void;
+  isAttackingFlag: boolean;
+  correctAnswers: number;
 }
 
 export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
@@ -103,6 +105,11 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
         <DifficultyBadge difficulty={props.difficulty || "medium"}>
           {props.difficulty}
         </DifficultyBadge>
+        {props.isAttackingFlag && (
+          <Typography variant="body2" sx={{ marginTop: "10px" }}>
+            Attacking flag: {props.correctAnswers}/2 correct answers
+          </Typography>
+        )}
         {props.showExplanation && (
           <>
             <Typography variant="h6" color={props.correct ? "success" : "error"}>

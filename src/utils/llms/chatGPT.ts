@@ -9,7 +9,7 @@ export const fetchOpenAIApi = async (
   api: string,
   system: string,
   data: GenerateFormData,
-  model: string = "gpt-3.5-turbo"
+  model: string = "gpt-4o-mini"
 ): Promise<any> => {
   try {
     const headers = getHeaders(api);

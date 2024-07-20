@@ -1,12 +1,13 @@
 import { Cell, Topic } from "./types";
 
-const placePieces = (board: Cell[][], player: number): Cell[][] => {
+const placePieces = (board: Cell[][], player: number, boardSize: number): Cell[][] => {
   const newBoard = board.map((row) => [...row]);
+  const playerBoardCoords = boardSize - 1;
   const positions = [
     [0, 0], // Player 1
-    [7, 7], // Player 2
-    [0, 7], // Player 3
-    [7, 0], // Player 4
+    [playerBoardCoords, playerBoardCoords], // Player 2
+    [0, playerBoardCoords], // Player 3
+    [playerBoardCoords, 0], // Player 4
   ];
 
   const [row, col] = positions[player - 1];
@@ -52,18 +53,22 @@ const placePieces = (board: Cell[][], player: number): Cell[][] => {
   return newBoard;
 };
 
-export const createInitialBoard = (topics: Topic[], numberOfPlayers: number): Cell[][] => {
+export const createInitialBoard = (
+  topics: Topic[],
+  numberOfPlayers: number,
+  boardSize: number
+): Cell[][] => {
   let newBoard: Cell[][] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < boardSize; i++) {
     newBoard[i] = [];
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < boardSize; j++) {
       const topic = topics[Math.floor(Math.random() * topics.length)];
       newBoard[i][j] = { topic, soldier: null, flag: null };
     }
   }
 
   for (let player = 1; player <= numberOfPlayers; player++) {
-    newBoard = placePieces(newBoard, player);
+    newBoard = placePieces(newBoard, player, boardSize);
   }
 
   return newBoard;
@@ -86,14 +91,16 @@ export const moveSoldier = (
 export const checkWinCondition = (
   board: Cell[][],
   currentPlayer: number,
-  activePlayers: number[]
+  activePlayers: number[],
+  boardSize: number
 ): boolean => {
+  const playerBoardCoords = boardSize - 1;
   // Check if current player has captured any opponent's flag
   const flagPositions = [
     { row: 0, col: 0 },
-    { row: 7, col: 7 },
-    { row: 0, col: 7 },
-    { row: 7, col: 0 },
+    { row: playerBoardCoords, col: playerBoardCoords },
+    { row: 0, col: playerBoardCoords },
+    { row: playerBoardCoords, col: 0 },
   ];
 
   for (let player of activePlayers) {

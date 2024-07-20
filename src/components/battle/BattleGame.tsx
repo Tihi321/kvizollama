@@ -48,7 +48,6 @@ interface BattleGameProps {
 export const BattleGame: Component<BattleGameProps> = ({ quiz, onBack }) => {
   const [view, setView] = createSignal<"start" | "battle" | "settings">("start");
   const [questions, setQuestions] = createSignal<Question[]>([]);
-  const [numberOfPlayers, setNumberOfPlayers] = createSignal(2);
   const [mounted, setMounted] = createSignal(false);
   const { getTranslation } = useTranslations();
 
@@ -58,10 +57,6 @@ export const BattleGame: Component<BattleGameProps> = ({ quiz, onBack }) => {
       setMounted(true);
     });
   });
-
-  const handleSettingsChange = (settings: { numberOfPlayers: number }) => {
-    setNumberOfPlayers(settings.numberOfPlayers);
-  };
 
   return (
     <Show
@@ -89,19 +84,9 @@ export const BattleGame: Component<BattleGameProps> = ({ quiz, onBack }) => {
         </MenuContainer>
       </Show>
       {view() === "battle" && (
-        <BattleComponent
-          questions={questions()}
-          onBack={() => setView("start")}
-          numberOfPlayers={numberOfPlayers() as number}
-        />
+        <BattleComponent questions={questions()} onBack={() => setView("start")} />
       )}
-      {view() === "settings" && (
-        <BattleSettings
-          onBack={() => setView("start")}
-          onSettingsChange={handleSettingsChange}
-          initialNumberOfPlayers={numberOfPlayers()}
-        />
-      )}
+      {view() === "settings" && <BattleSettings onBack={() => setView("start")} />}
     </Show>
   );
 };

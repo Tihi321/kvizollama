@@ -1,4 +1,4 @@
-import { Component, createSignal, createEffect } from "solid-js";
+import { Component, createSignal, onMount, createMemo, Show } from "solid-js";
 import { Button, Select, MenuItem, Typography } from "@suid/material";
 import { Container } from "../layout/Container";
 import { Back } from "../icons/Back";
@@ -29,29 +29,32 @@ const ColorPicker = styled.input`
 
 interface BattleSettingsProps {
   onBack: () => void;
-  onSettingsChange: (settings: { numberOfPlayers: number }) => void;
-  initialNumberOfPlayers: number;
 }
 
-export const BattleSettings: Component<BattleSettingsProps> = ({
-  onBack,
-  onSettingsChange,
-  initialNumberOfPlayers,
-}) => {
-  const [numberOfPlayers, setNumberOfPlayers] = createSignal(initialNumberOfPlayers);
+export const BattleSettings: Component<BattleSettingsProps> = ({ onBack }) => {
+  const [boardSize, setBoardSize] = createSignal();
+  const [numberOfPlayers, setNumberOfPlayers] = createSignal();
   const [playerColors, setPlayerColors] = createSignal<string[]>([]);
 
-  createEffect(() => {
+  const mounted = createMemo(() => {
+    return boardSize() !== undefined && numberOfPlayers() !== undefined;
+  });
+
+  onMount(() => {
     const storedColors = [1, 2, 3, 4].map(
       (player) => getStringValue(`kvizolamma/player${player}Color`) || getDefaultColor(player)
     );
     setPlayerColors(storedColors);
+    const storedBoardSize = Number(getStringValue(`kvizolamma/boardsize`)) || 8;
+    setBoardSize(storedBoardSize);
+    const storedNumberOfPlayers = Number(getStringValue(`kvizolamma/numberofplayers`)) || 2;
+    setNumberOfPlayers(storedNumberOfPlayers);
   });
 
   const handleNumberOfPlayersChange = (event: any) => {
     const newValue = Number(event.target.value);
     setNumberOfPlayers(newValue);
-    onSettingsChange({ numberOfPlayers: newValue });
+    saveStringValue(`kvizolamma/numberofplayers`, newValue.toString());
   };
 
   const handleColorChange = (player: number, color: string) => {
@@ -68,39 +71,56 @@ export const BattleSettings: Component<BattleSettingsProps> = ({
 
   return (
     <Container>
-      <SettingsContainer>
-        <SettingRow>
-          <Typography variant="body1">Number of Players:</Typography>
-          <Select
-            value={numberOfPlayers()}
-            onChange={handleNumberOfPlayersChange}
-            style={{ width: "100px" }}
-          >
-            <MenuItem value={2}>2</MenuItem>
-            <MenuItem value={3}>3</MenuItem>
-            <MenuItem value={4}>4</MenuItem>
-          </Select>
-        </SettingRow>
-
-        {[1, 2, 3, 4].slice(0, numberOfPlayers()).map((player) => (
+      <Show when={mounted()} fallback={<div>Loading</div>}>
+        <SettingsContainer>
           <SettingRow>
-            <Typography variant="body1">Player {player} Color:</Typography>
-            <ColorPicker
-              type="color"
-              value={playerColors()[player - 1]}
-              onChange={(e) => handleColorChange(player, e.target.value)}
-            />
+            <Typography variant="body1">Board Size:</Typography>
+            <Select
+              value={boardSize()}
+              onChange={(event: any) => {
+                const newValue = Number(event.target.value);
+                setBoardSize(newValue);
+                saveStringValue(`kvizolamma/boardsize`, newValue.toString());
+              }}
+              style={{ width: "100px" }}
+            >
+              <MenuItem value={6}>6x6</MenuItem>
+              <MenuItem value={8}>8x8</MenuItem>
+            </Select>
           </SettingRow>
-        ))}
+          <SettingRow>
+            <Typography variant="body1">Number of Players:</Typography>
+            <Select
+              value={numberOfPlayers()}
+              onChange={handleNumberOfPlayersChange}
+              style={{ width: "100px" }}
+            >
+              <MenuItem value={2}>2</MenuItem>
+              <MenuItem value={3}>3</MenuItem>
+              <MenuItem value={4}>4</MenuItem>
+            </Select>
+          </SettingRow>
 
-        <Button variant="contained" color="primary" onClick={onBack}>
-          Save and Return
+          {[1, 2, 3, 4].slice(0, numberOfPlayers() as number).map((player) => (
+            <SettingRow>
+              <Typography variant="body1">Player {player} Color:</Typography>
+              <ColorPicker
+                type="color"
+                value={playerColors()[player - 1]}
+                onChange={(e) => handleColorChange(player, e.target.value)}
+              />
+            </SettingRow>
+          ))}
+
+          <Button variant="contained" color="primary" onClick={onBack}>
+            Save and Return
+          </Button>
+        </SettingsContainer>
+
+        <Button variant="contained" color="info" onClick={onBack} sx={{ marginTop: "20px" }}>
+          <Back />
         </Button>
-      </SettingsContainer>
-
-      <Button variant="contained" color="info" onClick={onBack} sx={{ marginTop: "20px" }}>
-        <Back />
-      </Button>
+      </Show>
     </Container>
   );
 };

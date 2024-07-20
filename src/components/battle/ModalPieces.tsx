@@ -142,16 +142,10 @@ export const CentralModalContent = ({
   );
 };
 
-export const RulesModalContent = ({
-  onClose,
-  numberOfPlayers,
-}: {
-  onClose: () => void;
-  numberOfPlayers: number;
-}) => {
+export const RulesModalContent = ({ onClose }: { onClose: () => void }) => {
   return (
     <CentralModalContent onClose={onClose}>
-      <h2>Game Rules ({numberOfPlayers}-Player Mode)</h2>
+      <h2>Game Rules</h2>
       <ul>
         <li>
           Each player starts with 5 soldiers in a formation around their flag in one corner of the

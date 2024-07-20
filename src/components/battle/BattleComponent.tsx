@@ -30,7 +30,6 @@ import { getStringValue } from "../../hooks/local";
 interface BattleComponentProps {
   questions: Question[];
   onBack: () => void;
-  numberOfPlayers: number;
 }
 
 export const BattleComponent: Component<BattleComponentProps> = (props) => {
@@ -39,6 +38,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [selectedSquare, setSelectedSquare] = createSignal<{ row: number; col: number } | null>(
     null
   );
+  const [boardSize, setBoardSize] = createSignal(0);
   const [targetSquare, setTargetSquare] = createSignal<{ row: number; col: number } | null>(null);
   const [currentQuestion, setCurrentQuestion] = createSignal<Question | null>(null);
   const [correctAnswers, setCorrectAnswers] = createSignal(0);
@@ -49,7 +49,6 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
   const [topics, setTopics] = createSignal<Topic[]>([]);
   const [isAttackingFlag, setIsAttackingFlag] = createSignal(false);
-  const [, setColorUpdate] = createSignal(0);
   const [answeredQuestions, setAnsweredQuestions] = createSignal<Record<string, string[]>>({});
 
   const openModal = (view: "question" | "legend" | "rules") => {
@@ -61,9 +60,12 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   };
 
   const initializeBoard = () => {
+    const storedNumberOfPlayers = Number(getStringValue(`kvizolamma/numberofplayers`)) || 2;
+    const storedBoardSize = Number(getStringValue(`kvizolamma/boardsize`)) || 8;
+    setBoardSize(storedBoardSize);
     const newTopics = generateTopics(props.questions);
     setTopics(newTopics);
-    const newBoard = createInitialBoard(newTopics, props.numberOfPlayers);
+    const newBoard = createInitialBoard(newTopics, storedNumberOfPlayers, storedBoardSize);
     setBoard(newBoard);
     setCurrentPlayer(1);
     setSelectedSquare(null);
@@ -73,7 +75,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setClickedTopic(undefined);
     setShowExplanation(false);
     setLastAnswerCorrect(null);
-    setActivePlayers(Array.from({ length: props.numberOfPlayers }, (_, i) => i + 1));
+    setActivePlayers(Array.from({ length: storedNumberOfPlayers }, (_, i) => i + 1));
     setAnsweredQuestions({});
   };
 
@@ -141,7 +143,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           const newBoard = moveSoldier(board(), selectedSquare()!, targetSquare()!);
           setBoard(newBoard);
           closeModal();
-          if (checkWinCondition(newBoard, currentPlayer(), activePlayers())) {
+          if (checkWinCondition(newBoard, currentPlayer(), activePlayers(), boardSize())) {
             alert(`Player ${currentPlayer()} wins!`);
             initializeBoard();
           } else {
@@ -168,16 +170,6 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     const nextIndex = (currentIndex + 1) % activePlayers().length;
     setCurrentPlayer(activePlayers()[nextIndex]);
   };
-
-  createEffect(() => {
-    const colorChangeListener = () => {
-      setColorUpdate((prev) => prev + 1);
-    };
-    window.addEventListener("storage", colorChangeListener);
-    return () => {
-      window.removeEventListener("storage", colorChangeListener);
-    };
-  });
 
   onMount(() => {
     initializeBoard();
@@ -266,7 +258,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       </Modal>
 
       <Modal open={modalView() === "rules"} onClose={closeModal}>
-        <RulesModalContent onClose={closeModal} numberOfPlayers={props.numberOfPlayers} />
+        <RulesModalContent onClose={closeModal} />
       </Modal>
 
       <Modal open={modalView() === "legend"} onClose={closeModal}>

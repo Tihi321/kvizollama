@@ -1,12 +1,6 @@
+import { createSignal, onMount, Show } from "solid-js";
 import { styled } from "solid-styled-components";
-export const GameBoard = styled.div`
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 5px;
-  width: 100%;
-  height: fit-content;
-  border: 1px solid ${(props) => props?.theme?.colors.border};
-`;
+import { getStringValue } from "../../hooks/local";
 
 export const Square = styled.div<{ backgroundColor: string }>`
   aspect-ratio: 1 / 1;
@@ -34,3 +28,26 @@ export const Square = styled.div<{ backgroundColor: string }>`
     opacity: 0.8;
   }
 `;
+
+const GameBoardContainer = styled.div<{ boardSize: number }>`
+  display: grid;
+  grid-template-columns: ${(props) => `repeat(${props.boardSize}, 1fr)`};
+  gap: 5px;
+  width: 100%;
+  height: fit-content;
+  border: 1px solid ${(props) => props?.theme?.colors.border};
+`;
+
+export const GameBoard = ({ children }: { children: any }) => {
+  const [boardSize, setBoardSize] = createSignal(0);
+
+  onMount(() => {
+    const storedBoardSize = Number(getStringValue(`kvizolamma/boardsize`)) || 8;
+    setBoardSize(storedBoardSize);
+  });
+  return (
+    <Show when={boardSize() > 0}>
+      <GameBoardContainer boardSize={boardSize()}>{children}</GameBoardContainer>
+    </Show>
+  );
+};

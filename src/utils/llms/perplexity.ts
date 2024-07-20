@@ -33,7 +33,6 @@ export const fetchPerplexityApi = async (
     const result = get(responseJson, ["choices", 0, "message", "content"], "");
     return parseJsonFromString(result);
   } catch (error) {
-    console.error("Error:", error);
     throw error;
   }
 };

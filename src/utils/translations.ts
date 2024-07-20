@@ -5,7 +5,7 @@ export const getDifficultyTranslationString = (difficulty: string) => {
       return "easy";
     case "normal":
     case "Normal":
-      return "medium";
+      return "normal";
     case "hard":
     case "Hard":
       return "hard";

@@ -74,7 +74,9 @@ export const getSelectedCombinedQuiz = async (
   const quizesResponse = await Promise.all([...cdnQuizPromises, ...customQuizPromises]);
 
   const combinedQuizes = [...quizesResponse, ...fileQuizesData, ...localQuizesData] as QuizInfo[];
-  if (combinedQuizes.length > 1) {
+  const cleanedQuizes = combinedQuizes.filter((quiz) => quiz !== undefined);
+  if (cleanedQuizes.length > 1) {
+    console.log("Combined Quizes:", combinedQuizes);
     const topDifficulty = getTopDifficulty(combinedQuizes);
     const questions = combinedQuestions(combinedQuizes);
 

@@ -17,9 +17,9 @@ interface GenerateFormProps {
 export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack, isApp }) => {
   const [type, setType] = createSignal("");
   const [localModel, setLocalModel] = createSignal("qwen2:7b");
-  const [openAIModel, setOpenAIModel] = createSignal("gpt-3.5-turbo");
+  const [openAIModel, setOpenAIModel] = createSignal("gpt-4o-mini");
   const [name, setName] = createSignal("");
-  const [topics, setTopics] = createSignal<Array<{ title: string; description: string }>>([]);
+  const [topics, setTopics] = createSignal<Array<{ title: string; descriptions: string[] }>>([]);
   const [difficulty, setDifficulty] = createSignal("normal");
   const [questionsPerTopic, setQuestionsPerTopic] = createSignal(4);
   const [maxPointsPerQuestion, setMaxPointsPerQuestion] = createSignal(10);
@@ -45,7 +45,9 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
 
   const topicsArray = createMemo(() => {
     return map(topics(), (values) =>
-      values.description ? `${values.title} (${values.description})` : values.title
+      !isEmpty(values.descriptions)
+        ? `${values.title} (${values.descriptions.join("|")})`
+        : values.title
     );
   });
 
@@ -71,16 +73,8 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
     onGenerate(formData, { model, name: name(), type: type(), api });
   };
 
-  const handleTopicChange = (index: number, title: string, description: string) => {
-    setTopics((prevTopics) => {
-      const newTopics = [...prevTopics];
-      newTopics[index] = { title, description };
-      return newTopics;
-    });
-  };
-
   const addTopicField = () => {
-    setTopics((prevTopics) => [...prevTopics, { title: "", description: "" }]);
+    setTopics((prevTopics) => [...prevTopics, { title: "", descriptions: [] }]);
   };
 
   const removeTopicField = (index: number) => {
@@ -119,6 +113,7 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
           <FormControl fullWidth margin="normal">
             <InputLabel>{getTranslation("model")}</InputLabel>
             <Select value={openAIModel()} onChange={(e) => setOpenAIModel(e.target.value)}>
+              <MenuItem value="gpt-4o-mini">Gpt-4o-mini</MenuItem>
               <MenuItem value="gpt-4o">Gpt-4o</MenuItem>
               <MenuItem value="gpt-4-turbo">Gpt-4-turbo</MenuItem>
               <MenuItem value="gpt-3.5-turbo">Gpt-3.5-turbo</MenuItem>
@@ -134,34 +129,80 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
         />
         <For each={topics()}>
           {(topic, index) => (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               <TextField
                 fullWidth
                 label={`${getTranslation("topic")} ${index() + 1}`}
                 defaultValue={get(topic, ["title"], "")}
-                onBlur={(event: any) =>
-                  handleTopicChange(
-                    index(),
-                    event.target.value,
-                    get(topics(), [index(), "description"], "")
-                  )
-                }
+                onBlur={(event: any) => {
+                  setTopics((prevTopics) => {
+                    const newTopics = [...prevTopics];
+                    newTopics[index()] = {
+                      title: event.target.value,
+                      descriptions: get(topics(), [index(), "descriptions"], []),
+                    };
+                    return newTopics;
+                  });
+                }}
                 margin="normal"
               />
-              <TextField
-                fullWidth
-                label={`${getTranslation("description")} ${index() + 1}`}
-                defaultValue={get(topic, ["description"], "")}
-                onBlur={(event: any) =>
-                  handleTopicChange(
-                    index(),
-                    get(topics(), [index(), "title"], ""),
-                    event.target.value
-                  )
-                }
-                margin="normal"
-              />
-              <Button onClick={() => removeTopicField(index())}>Remove</Button>
+              <For each={get(topic, ["descriptions"], [])}>
+                {(description, descriptionIndex) => (
+                  <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      label={`${getTranslation("description")} ${descriptionIndex() + 1}`}
+                      defaultValue={description}
+                      onBlur={(event: any) => {
+                        setTopics((prevTopics) => {
+                          const newTopics = [...prevTopics];
+                          newTopics[index()] = {
+                            title: get(topics(), [index(), "title"], ""),
+                            descriptions: newTopics[index()].descriptions.map((desc, i) =>
+                              i === descriptionIndex() ? event.target.value : desc
+                            ),
+                          };
+                          return newTopics;
+                        });
+                      }}
+                      margin="normal"
+                    />
+                    <Button
+                      onClick={() =>
+                        setTopics((prevTopics) => {
+                          const newTopics = [...prevTopics];
+                          newTopics[index()] = {
+                            title: get(topics(), [index(), "title"], ""),
+                            descriptions: newTopics[index()].descriptions.filter(
+                              (_, i) => i !== descriptionIndex()
+                            ),
+                          };
+                          return newTopics;
+                        })
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                )}
+              </For>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+                <Button
+                  onClick={() =>
+                    setTopics((prevTopics) => {
+                      const newTopics = [...prevTopics];
+                      newTopics[index()] = {
+                        title: get(topics(), [index(), "title"], ""),
+                        descriptions: [...get(topics(), [index(), "descriptions"], []), ""],
+                      };
+                      return newTopics;
+                    })
+                  }
+                >
+                  Add Description
+                </Button>
+                <Button onClick={() => removeTopicField(index())}>Remove</Button>
+              </Box>
             </Box>
           )}
         </For>
@@ -170,7 +211,7 @@ export const GenerateForm: Component<GenerateFormProps> = ({ onGenerate, onBack,
           <InputLabel>{getTranslation("difficulty")}</InputLabel>
           <Select value={difficulty()} onChange={(e) => setDifficulty(e.target.value)}>
             <MenuItem value="easy">{getTranslation("easy")}</MenuItem>
-            <MenuItem value="normal">{getTranslation("medium")}</MenuItem>
+            <MenuItem value="normal">{getTranslation("normal")}</MenuItem>
             <MenuItem value="hard">{getTranslation("hard")}</MenuItem>
           </Select>
         </FormControl>

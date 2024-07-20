@@ -41,11 +41,9 @@ export const GameAbout: Component<GameAboutProps> = ({ systemPrompt, onBack }) =
           </Button>
           <Button
             onClick={() => {
-              navigator.clipboard.writeText(`
-              Topic: [TOPICS]
-              Maximum Difficulty: [MAX_DIFFICULTY]
-              Number of Questions per Topic: [NUM_QUESTIONS]
-              Maximum Total Points: [MAX_POINTS],`);
+              navigator.clipboard.writeText(
+                `Topic: [TOPICS]\nMaximum Difficulty: [MAX_DIFFICULTY]\nNumber of Questions per Topic: [NUM_QUESTIONS]\nMaximum Total Points: [MAX_POINTS],`
+              );
             }}
             variant="contained"
             color="primary"

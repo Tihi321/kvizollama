@@ -68,23 +68,28 @@ const MenuButton = styled(Button)`
 `;
 
 export const App = () => {
+  const [view, setView] = createSignal<
+    | "menu"
+    | "loading"
+    | "start-single"
+    | "start-battle"
+    | "settings"
+    | "load"
+    | "save"
+    | "generate"
+    | "about"
+  >("menu");
   const [fileQuizes, setFileQuizes] = createSignal<QuizInfo[]>([]);
   const [serverQuizes, setServerQuizes] = createSignal<QuizInfo[]>([]);
   const [cdnAvailableQuizes, setCdnAvailableQuizes] = createSignal<CdnQuizInfo[]>([]);
   const [selectedQuiz, setSelectedQuiz] = createSignal<QuizInfo>();
   const [customQuizUrl, setCustomQuizUrl] = createSignal<string>();
   const [selectedCustomQuiz, setSelectedCustomQuiz] = createSignal<QuizInfo>();
-  const [generateQuiz, setGenerateQuiz] = createSignal(false);
-  const [aboutQuiz, setAboutQuiz] = createSignal(false);
-  const [showLoadQuiz, setShowLoadQuiz] = createSignal(false);
-  const [showSaveQuiz, setShowSaveQuiz] = createSignal(false);
-  const [showSettingsQuiz, setShowSettingsQuiz] = createSignal(false);
-  const [loading, setLoading] = createSignal(true);
   const [isApp, setIsApp] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
   const [language, setLanguage] = createSignal("");
-  const [singleQuizStarted, setSingleQuizStarted] = createSignal(false);
-  const [battleQuizStarted, setBattleQuizStarted] = createSignal(false);
+  const [lastGeneration, setLastGeneration] = createSignal<string | null>(null);
+  const [responseError, setResponseError] = createSignal<boolean>(false);
   const { getTranslation } = useTranslations();
 
   const systemLanguagePrompt = createMemo(() => {
@@ -96,22 +101,6 @@ export const App = () => {
       ? (selectedCustomQuiz() as QuizInfo)
       : (selectedQuiz() as QuizInfo);
   });
-
-  const isHomepage = createMemo(() => {
-    return !singleQuizStarted();
-  });
-
-  const showStart = createMemo(
-    () =>
-      !singleQuizStarted() &&
-      !battleQuizStarted() &&
-      !generateQuiz() &&
-      !loading() &&
-      !showLoadQuiz() &&
-      !showSaveQuiz() &&
-      !aboutQuiz() &&
-      !showSettingsQuiz()
-  );
 
   const setSelectedQuizRequest = (callback: () => void = () => {}) => {
     const useServer = getBooleanValue("kvizolamma/useserver");
@@ -133,6 +122,8 @@ export const App = () => {
     }
   };
 
+  const goBackToMenu = () => setView("menu");
+
   onMount(async () => {
     const quizLanguage = getStringValue("kvizolamma/language");
     setLanguage(quizLanguage || "english");
@@ -144,7 +135,7 @@ export const App = () => {
       emit("get_server_quizes");
     }
     fetchCdnAvailableQuizes().then((response) => {
-      setLoading(false);
+      goBackToMenu();
       setCdnAvailableQuizes(response);
     });
 
@@ -159,12 +150,11 @@ export const App = () => {
   createEffect(() => {
     if (customQuizUrl()) {
       setCustomQuizUrl();
-      setShowLoadQuiz(false);
-      setLoading(true);
+      setView("loading");
       const customQuizTitle = getURLParams("title");
       getCustomQuiz(customQuizUrl() as string, customQuizTitle || "custom").then((data) => {
         setSelectedCustomQuiz(data);
-        setLoading(false);
+        goBackToMenu();
       });
     }
   });
@@ -181,7 +171,7 @@ export const App = () => {
       const responseQuizes = parseResponseJson(event.payload);
 
       setFileQuizes(responseQuizes);
-      setLoading(false);
+      goBackToMenu();
     });
 
     return () => {
@@ -203,34 +193,53 @@ export const App = () => {
   });
 
   const handleGenerateQuiz = async (formData: GenerateFormData, options: GenerateFormOptions) => {
-    setGenerateQuiz(false);
-    setLoading(true);
+    setView("loading");
 
     if (options.type === "perplexity") {
-      fetchPerplexityApi(options.api || "", systemLanguagePrompt(), formData).then((response) => {
-        if (isApp()) {
-          emit("save_quiz", { name: options.name, data: response });
-          setLoading(false);
-        } else {
-          saveLocalQuiz(options.name, JSON.stringify(response));
-          setLoading(false);
-        }
-      });
+      fetchPerplexityApi(options.api || "", systemLanguagePrompt(), formData)
+        .then((response) => {
+          const savedResponse = getStringValue(`kvizolamma/lastgeneration`);
+          setResponseError(false);
+          setLastGeneration(savedResponse);
+          if (isApp()) {
+            emit("save_quiz", { name: options.name, data: response });
+            goBackToMenu();
+          } else {
+            saveLocalQuiz(options.name, JSON.stringify(response));
+            goBackToMenu();
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          const savedResponse = getStringValue(`kvizolamma/lastgeneration`);
+          setLastGeneration(savedResponse);
+          setResponseError(true);
+          goBackToMenu();
+        });
       return;
     }
 
     if (options.type === "chatgpt") {
-      fetchOpenAIApi(options.api || "", systemLanguagePrompt(), formData, options.model).then(
-        (response) => {
+      fetchOpenAIApi(options.api || "", systemLanguagePrompt(), formData, options.model)
+        .then((response) => {
+          const savedResponse = getStringValue(`kvizolamma/lastgeneration`);
+          setResponseError(false);
+          setLastGeneration(savedResponse);
           if (isApp()) {
             emit("save_quiz", { name: options.name, data: response });
-            setLoading(false);
+            goBackToMenu();
           } else {
             saveLocalQuiz(options.name, JSON.stringify(response));
-            setLoading(false);
+            goBackToMenu();
           }
-        }
-      );
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          const savedResponse = getStringValue(`kvizolamma/lastgeneration`);
+          setLastGeneration(savedResponse);
+          setResponseError(true);
+          goBackToMenu();
+        });
       return;
     }
 
@@ -241,27 +250,26 @@ export const App = () => {
         model: options.model,
         language: capitalize(language()),
       });
-      setGenerateQuiz(false);
+      goBackToMenu();
       return;
     }
   };
 
   const onLoadBack = () => {
-    setLoading(true);
-    setShowLoadQuiz(false);
+    setView("loading");
     setSelectedQuizRequest(() => {
-      setLoading(false);
+      goBackToMenu();
     });
   };
 
   return (
     <Container>
-      <Header langugage={isHomepage()} />
-      <Show when={showStart()}>
+      <Header langugage={view() === "menu"} />
+      <Show when={view() === "menu"}>
         <MenuContainer>
           <Menu>
             <MenuButton
-              onClick={() => setSingleQuizStarted(true)}
+              onClick={() => setView("start-single")}
               variant="contained"
               color="primary"
               disabled={isEmpty(selectedQuizData())}
@@ -269,36 +277,43 @@ export const App = () => {
               {getTranslation("start_single_quiz")}
             </MenuButton>
             <MenuButton
-              onClick={() => setBattleQuizStarted(true)}
+              onClick={() => setView("start-battle")}
               variant="contained"
               color="primary"
               disabled={isEmpty(selectedQuizData())}
             >
               {getTranslation("battle_quiz")}
             </MenuButton>
-            <MenuButton
-              onClick={() => setShowSettingsQuiz(true)}
-              variant="contained"
-              color="primary"
-            >
+            <MenuButton onClick={() => setView("settings")} variant="contained" color="primary">
               {getTranslation("settings")}
             </MenuButton>
-            <MenuButton onClick={() => setShowLoadQuiz(true)} variant="contained" color="primary">
+            <MenuButton onClick={() => setView("load")} variant="contained" color="primary">
               {getTranslation("load")}
             </MenuButton>
-            <MenuButton onClick={() => setShowSaveQuiz(true)} variant="contained" color="primary">
+            <MenuButton onClick={() => setView("save")} variant="contained" color="primary">
               {getTranslation("save")}
             </MenuButton>
-            <MenuButton onClick={() => setGenerateQuiz(true)} variant="contained" color="primary">
+            <MenuButton onClick={() => setView("generate")} variant="contained" color="primary">
               {getTranslation("generate")}
             </MenuButton>
-            <MenuButton onClick={() => setAboutQuiz(true)} variant="contained" color="primary">
+            <MenuButton onClick={() => setView("about")} variant="contained" color="primary">
               {getTranslation("about")}
             </MenuButton>
+            {!isEmpty(lastGeneration()) && (
+              <MenuButton
+                onClick={() => {
+                  navigator.clipboard.writeText(lastGeneration() || "");
+                }}
+                variant="contained"
+                color={responseError() ? "error" : "primary"}
+              >
+                {getTranslation("copy_response")}
+              </MenuButton>
+            )}
           </Menu>
         </MenuContainer>
       </Show>
-      <Show when={loading()}>
+      <Show when={view() === "loading"}>
         <Box
           sx={{
             display: "flex",
@@ -310,13 +325,13 @@ export const App = () => {
           <CircularProgress />
         </Box>
       </Show>
-      <Show when={singleQuizStarted() && !isEmpty(selectedQuizData())}>
-        <QuizGame quiz={selectedQuizData()} onBack={() => setSingleQuizStarted(false)} />
+      <Show when={view() === "start-single" && !isEmpty(selectedQuizData())}>
+        <QuizGame quiz={selectedQuizData()} onBack={goBackToMenu} />
       </Show>
-      <Show when={battleQuizStarted() && !isEmpty(selectedQuizData())}>
-        <BattleGame quiz={selectedQuizData()} onBack={() => setBattleQuizStarted(false)} />
+      <Show when={view() === "start-battle" && !isEmpty(selectedQuizData())}>
+        <BattleGame quiz={selectedQuizData()} onBack={goBackToMenu} />
       </Show>
-      <Show when={showLoadQuiz()}>
+      <Show when={view() === "load"}>
         <QuizLoad
           cdnQuizes={cdnAvailableQuizes()}
           isApp={isApp()}
@@ -325,21 +340,17 @@ export const App = () => {
           onBack={onLoadBack}
         />
       </Show>
-      <Show when={showSaveQuiz()}>
-        <QuizSave isApp={isApp()} onBack={() => setShowSaveQuiz(false)} />
+      <Show when={view() === "save"}>
+        <QuizSave isApp={isApp()} onBack={goBackToMenu} />
       </Show>
-      <Show when={showSettingsQuiz()}>
-        <GameSettings onBack={() => setShowSettingsQuiz(false)} />
+      <Show when={view() === "settings"}>
+        <GameSettings onBack={goBackToMenu} />
       </Show>
-      <Show when={generateQuiz()}>
-        <GenerateForm
-          isApp={isApp()}
-          onGenerate={handleGenerateQuiz}
-          onBack={() => setGenerateQuiz(false)}
-        />
+      <Show when={view() === "generate"}>
+        <GenerateForm isApp={isApp()} onGenerate={handleGenerateQuiz} onBack={goBackToMenu} />
       </Show>
-      <Show when={aboutQuiz()}>
-        <GameAbout systemPrompt={systemLanguagePrompt()} onBack={() => setAboutQuiz(false)} />
+      <Show when={view() === "about"}>
+        <GameAbout systemPrompt={systemLanguagePrompt()} onBack={goBackToMenu} />
       </Show>
       {getURLParams("footer") !== "hide" && <Footer />}
     </Container>

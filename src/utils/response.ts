@@ -1,5 +1,6 @@
 import { head, map } from "lodash";
 import { QuizInfo, QuizesResponse, Topics } from "../types";
+import { saveStringValue } from "../hooks/local";
 
 // Function to parse JSON string
 export const parseResponseJson = (response: QuizesResponse): QuizInfo[] | [] => {
@@ -24,11 +25,11 @@ export const parseJsonFromString = (response: string): QuizInfo[] | [] => {
   const startIndex = response.indexOf("[");
   const endIndex = response.lastIndexOf("]") + 1; // +1 to include the bracket in the substring
   const jsonString = response.substring(startIndex, endIndex);
+  saveStringValue(`kvizolamma/lastgeneration`, jsonString);
   try {
     const jsonData = JSON.parse(jsonString);
     return jsonData;
   } catch (error) {
-    console.error("Error parsing JSON", error);
-    return [];
+    throw error;
   }
 };

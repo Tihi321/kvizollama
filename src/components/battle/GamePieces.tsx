@@ -1,9 +1,9 @@
 import { styled } from "solid-styled-components";
 
 export const Container = styled.div`
-  max-width: 920px;
+  max-width: 100vh;
   width: 100%;
-  margin: 0 auto;
+  margin: auto;
   padding: 20px;
   position: relative;
 `;
@@ -30,7 +30,7 @@ export const Sidebar = styled.div`
 export const GameMenu = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   margin-top: auto;
 `;
 
@@ -52,15 +52,21 @@ export const MenuButton = styled.button`
 export const Players = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
 `;
 
 export const Player = styled.div<{ active: boolean; player: number; backgroundColor?: string }>`
-  padding: 10px;
+  padding: 6px;
   border-radius: 5px;
   color: white;
   background-color: ${(props) => (props.backgroundColor ? props.backgroundColor : "#2c3e50")};
   font-weight: ${(props) => (props.active ? "bold" : "normal")};
+
+  font-size: 12px;
+
+  @media (min-width: 700px) {
+    font-size: 16px;
+  }
 `;
 
 export const TopicContainer = styled.div<{ backgroundColor?: string }>`
@@ -73,7 +79,12 @@ export const TopicContainer = styled.div<{ backgroundColor?: string }>`
   transform: translateY(50%);
   position: absolute;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
+  left: 10px;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 12px;
+
+  @media (min-width: 700px) {
+    font-size: 16px;
+  }
 `;

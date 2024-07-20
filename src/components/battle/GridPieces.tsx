@@ -18,8 +18,8 @@ export const Square = styled.div<{ backgroundColor: string }>`
     position: absolute;
     top: 5px;
     right: 5px;
-    width: 25px;
-    height: 25px;
+    width: 20%;
+    height: 20%;
     border-radius: 50%;
     background-color: ${(props) => props.backgroundColor};
   }

@@ -50,6 +50,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [topics, setTopics] = createSignal<Topic[]>([]);
   const [isAttackingFlag, setIsAttackingFlag] = createSignal(false);
   const [, setColorUpdate] = createSignal(0);
+  const [answeredQuestions, setAnsweredQuestions] = createSignal<Record<string, string[]>>({});
 
   const openModal = (view: "question" | "legend" | "rules") => {
     setModalView(view);
@@ -73,6 +74,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setShowExplanation(false);
     setLastAnswerCorrect(null);
     setActivePlayers(Array.from({ length: props.numberOfPlayers }, (_, i) => i + 1));
+    setAnsweredQuestions({});
   };
 
   const selectSquare = (row: number, col: number, topic: Topic) => {
@@ -87,18 +89,37 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         setIsAttackingFlag(board()[row][col].flag !== null);
         openQuestion();
       }
+    } else {
+      setClickedTopic(topic);
     }
-    setClickedTopic(topic);
   };
 
   const openQuestion = () => {
     const topic = board()[targetSquare()!.row][targetSquare()!.col].topic.name;
     const topicQuestions = props.questions.filter((q) => q.topic === topic);
-    const question = topicQuestions[Math.floor(Math.random() * topicQuestions.length)];
+    const answeredTopicQuestions = answeredQuestions()[topic] || [];
+
+    let availableQuestions = topicQuestions.filter(
+      (q) => !answeredTopicQuestions.includes(q.question)
+    );
+
+    if (availableQuestions.length === 0) {
+      // If all questions have been answered, reset the answered questions for this topic
+      setAnsweredQuestions((prev) => ({ ...prev, [topic]: [] }));
+      availableQuestions = topicQuestions;
+    }
+
+    const question = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
     setCurrentQuestion(question);
     openModal("question");
     setShowExplanation(false);
     setLastAnswerCorrect(null);
+
+    // Mark the question as answered
+    setAnsweredQuestions((prev) => ({
+      ...prev,
+      [topic]: [...(prev[topic] || []), question.question],
+    }));
   };
 
   const checkAnswer = (answerIndex: number) => {

@@ -1,4 +1,4 @@
-import { createSignal, For, Component, onMount, createEffect, Show } from "solid-js";
+import { createSignal, For, Component, onMount, Show } from "solid-js";
 import { Button, Modal } from "@suid/material";
 import { RenderFlag, RenderSoldier } from "./PlayerPieces";
 import {

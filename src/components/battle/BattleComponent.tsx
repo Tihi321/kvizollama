@@ -1,23 +1,28 @@
-import { createSignal, For, Component, onMount, createEffect } from "solid-js";
+import { createSignal, For, Component, onMount, createEffect, Show } from "solid-js";
 import { Button, Modal } from "@suid/material";
 import { RenderFlag, RenderSoldier } from "./PlayerPieces";
-import { RulesModalContent } from "./ModalPieces";
+import {
+  CentralModalContent,
+  ColorSquare,
+  Legend,
+  LegendItem,
+  Legends,
+  RulesModalContent,
+} from "./ModalPieces";
 import { GameBoard, Square } from "./GridPieces";
 import { checkWinCondition, createInitialBoard, moveSoldier } from "./logic";
 import { Cell, Question, Topic } from "./types";
 import { Back } from "../icons/Back";
 import { generateTopics } from "./utils";
 import {
-  ColorSquare,
   Container,
   Content,
   GameMenu,
-  Legend,
-  LegendItem,
   MenuButton,
   Player,
   Players,
   Sidebar,
+  TopicContainer,
 } from "./GamePieces";
 import { BattleQuestion } from "./BattleQuestion";
 import { getStringValue } from "../../hooks/local";
@@ -37,14 +42,22 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [targetSquare, setTargetSquare] = createSignal<{ row: number; col: number } | null>(null);
   const [currentQuestion, setCurrentQuestion] = createSignal<Question | null>(null);
   const [correctAnswers, setCorrectAnswers] = createSignal(0);
-  const [questionModalOpen, setQuestionModalOpen] = createSignal(false);
-  const [rulesModalOpen, setRulesModalOpen] = createSignal(false);
+  const [modalView, setModalView] = createSignal<"question" | "legend" | "rules" | null>(null);
+  const [clickedTopic, setClickedTopic] = createSignal<Topic>();
   const [showExplanation, setShowExplanation] = createSignal(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = createSignal<boolean | null>(null);
   const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
   const [topics, setTopics] = createSignal<Topic[]>([]);
   const [isAttackingFlag, setIsAttackingFlag] = createSignal(false);
   const [, setColorUpdate] = createSignal(0);
+
+  const openModal = (view: "question" | "legend" | "rules") => {
+    setModalView(view);
+  };
+
+  const closeModal = () => {
+    setModalView(null);
+  };
 
   const initializeBoard = () => {
     const newTopics = generateTopics(props.questions);
@@ -55,13 +68,14 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     setSelectedSquare(null);
     setTargetSquare(null);
     setCurrentQuestion(null);
-    setQuestionModalOpen(false);
+    closeModal();
+    setClickedTopic(undefined);
     setShowExplanation(false);
     setLastAnswerCorrect(null);
     setActivePlayers(Array.from({ length: props.numberOfPlayers }, (_, i) => i + 1));
   };
 
-  const selectSquare = (row: number, col: number) => {
+  const selectSquare = (row: number, col: number, topic: Topic) => {
     if (board()[row][col].soldier?.player === currentPlayer()) {
       setSelectedSquare({ row, col });
     } else if (selectedSquare()) {
@@ -74,6 +88,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         openQuestion();
       }
     }
+    setClickedTopic(topic);
   };
 
   const openQuestion = () => {
@@ -81,7 +96,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
     const topicQuestions = props.questions.filter((q) => q.topic === topic);
     const question = topicQuestions[Math.floor(Math.random() * topicQuestions.length)];
     setCurrentQuestion(question);
-    setQuestionModalOpen(true);
+    openModal("question");
     setShowExplanation(false);
     setLastAnswerCorrect(null);
   };
@@ -104,7 +119,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         setTimeout(() => {
           const newBoard = moveSoldier(board(), selectedSquare()!, targetSquare()!);
           setBoard(newBoard);
-          setQuestionModalOpen(false);
+          closeModal();
           if (checkWinCondition(newBoard, currentPlayer(), activePlayers())) {
             alert(`Player ${currentPlayer()} wins!`);
             initializeBoard();
@@ -122,7 +137,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       setShowExplanation(true);
       setTimeout(() => {
         nextPlayer();
-        setQuestionModalOpen(false);
+        closeModal();
       }, 3000);
     }
   };
@@ -155,7 +170,10 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
             {(row, i) => (
               <For each={row}>
                 {(cell, j) => (
-                  <Square backgroundColor={cell.topic.color} onClick={() => selectSquare(i(), j())}>
+                  <Square
+                    backgroundColor={cell.topic.color}
+                    onClick={() => selectSquare(i(), j(), cell.topic)}
+                  >
                     {cell.soldier && <RenderSoldier player={cell.soldier.player} />}
                     {cell.flag && <RenderFlag player={cell.flag.player} />}
                   </Square>
@@ -186,40 +204,35 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
               )}
             </For>
           </Players>
+          <Show when={clickedTopic()}>
+            <TopicContainer backgroundColor={clickedTopic()?.color}>
+              {clickedTopic()?.name}
+            </TopicContainer>
+          </Show>
           <GameMenu>
             <MenuButton onClick={initializeBoard}>New Game</MenuButton>
-            <MenuButton onClick={() => setRulesModalOpen(true)}>i</MenuButton>
+            <MenuButton onClick={() => openModal("rules")}>i</MenuButton>
+            <MenuButton onClick={() => openModal("legend")}>Legend</MenuButton>
             <Button variant="contained" color="info" onClick={props.onBack} size="small">
               <Back />
             </Button>
           </GameMenu>
         </Sidebar>
       </Content>
-      <Legend>
-        <For each={topics()}>
-          {(topic) => (
-            <LegendItem>
-              <ColorSquare backgroundColor={topic.color} />
-              <span>{topic.name}</span>
-            </LegendItem>
-          )}
-        </For>
-      </Legend>
       <Modal
-        open={questionModalOpen()}
+        open={modalView() === "question"}
         onClose={() => {
           nextPlayer();
-          setQuestionModalOpen(false);
+          closeModal();
         }}
       >
         <BattleQuestion
           onClose={() => {
             nextPlayer();
-            setQuestionModalOpen(false);
+            closeModal();
           }}
           topic={currentQuestion()?.topic}
           difficulty={currentQuestion()?.difficulty}
-          title={currentQuestion()?.question}
           question={currentQuestion()?.question}
           explanation={currentQuestion()?.explanation}
           answers={currentQuestion()?.answers}
@@ -231,11 +244,26 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
         />
       </Modal>
 
-      <Modal open={rulesModalOpen()} onClose={() => setRulesModalOpen(false)}>
-        <RulesModalContent
-          onClose={() => setRulesModalOpen(false)}
-          numberOfPlayers={props.numberOfPlayers}
-        />
+      <Modal open={modalView() === "rules"} onClose={closeModal}>
+        <RulesModalContent onClose={closeModal} numberOfPlayers={props.numberOfPlayers} />
+      </Modal>
+
+      <Modal open={modalView() === "legend"} onClose={closeModal}>
+        <CentralModalContent onClose={closeModal}>
+          <Legends>
+            <h2>Legend</h2>
+            <Legend>
+              <For each={topics()}>
+                {(topic) => (
+                  <LegendItem>
+                    <ColorSquare backgroundColor={topic.color} />
+                    <span>{topic.name}</span>
+                  </LegendItem>
+                )}
+              </For>
+            </Legend>
+          </Legends>
+        </CentralModalContent>
       </Modal>
     </Container>
   );

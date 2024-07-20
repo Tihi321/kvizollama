@@ -1,25 +1,4 @@
 import { styled } from "solid-styled-components";
-import { getPlayerColor } from "./utils";
-
-export const Legend = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  margin-top: 20px;
-  border: 1px solid ${(props) => props?.theme?.colors.border};
-`;
-
-export const LegendItem = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 5px 10px;
-`;
-
-export const ColorSquare = styled.div<{ backgroundColor: string }>`
-  width: 20px;
-  height: 20px;
-  background-color: ${(props) => props.backgroundColor};
-  margin-right: 5px;
-`;
 
 export const Container = styled.div`
   max-width: 920px;
@@ -38,12 +17,14 @@ export const Content = styled.div`
 `;
 
 export const Sidebar = styled.div`
+  position: relative;
   width: 150px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   border: 1px solid ${(props) => props?.theme?.colors.border};
   padding: 10px;
+  box-sizing: border-box;
 `;
 
 export const GameMenu = styled.div`
@@ -80,4 +61,19 @@ export const Player = styled.div<{ active: boolean; player: number; backgroundCo
   color: white;
   background-color: ${(props) => (props.backgroundColor ? props.backgroundColor : "#2c3e50")};
   font-weight: ${(props) => (props.active ? "bold" : "normal")};
+`;
+
+export const TopicContainer = styled.div<{ backgroundColor?: string }>`
+  padding: 10px;
+  border-radius: 5px;
+  color: ${(props) => props?.theme?.colors.darkBackground};
+  background-color: ${(props) => (props.backgroundColor ? props.backgroundColor : "#2c3e50")};
+  border: 2px solid ${(props) => props?.theme?.colors.darkBackground};
+  margin: auto 0;
+  transform: translateY(50%);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
 `;

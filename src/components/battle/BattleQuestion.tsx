@@ -6,7 +6,6 @@ import { getBooleanValue, getStringValue } from "../../hooks/local";
 import { isUndefined } from "lodash";
 import {
   AnswerButton,
-  DifficultyBadge,
   ExplanationText,
   IconButtonStyled,
   ModalAnswers,
@@ -17,11 +16,12 @@ import {
 } from "./ModalPieces";
 import { Echo } from "../icons/Echo";
 import { Close } from "../icons/Close";
+import { useTranslations } from "../../hooks/translations";
+import { getDifficultyTranslationString } from "../../utils/translations";
 
 interface BattleQuestionProps {
   topic?: string;
   difficulty?: string;
-  title?: string;
   question?: string;
   explanation?: string;
   answers?: Answer[];
@@ -34,6 +34,7 @@ interface BattleQuestionProps {
 }
 
 export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
+  const { getTranslation } = useTranslations();
   const [mounted, setMounted] = createSignal(false);
   const [autoStartVoice, setAutoStartVoice] = createSignal(false);
   const [selectedVoice, setSelectedVoice] = createSignal<string>();
@@ -63,8 +64,8 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
         speaker.voice = voice;
         speaker.lang = voice.lang;
 
-        if (autoStartVoice() && props.title) {
-          speaker.text = props.title;
+        if (autoStartVoice() && props.question) {
+          speaker.text = props.question;
           speechSynthesis.speak(speaker);
         }
       }
@@ -77,8 +78,8 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
   };
 
   const speak = () => {
-    if (!speaker || !props.title) return;
-    speaker.text = props.title;
+    if (!speaker || !props.question) return;
+    speaker.text = props.question;
     if (speechSynthesis.speaking) {
       speechSynthesis.cancel();
     } else {
@@ -89,7 +90,9 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
   return (
     <ModalContent>
       <ModalTitle>
-        <h2>{props.title}</h2>
+        <h2>
+          {props.topic} ({getTranslation(getDifficultyTranslationString(props.difficulty || ""))})
+        </h2>
         <Button variant="contained" color="warning" onClick={props.onClose}>
           <Close />
         </Button>
@@ -102,9 +105,6 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
           </IconButtonStyled>
         )}
         <ModalQuestion>{props.question}</ModalQuestion>
-        <DifficultyBadge difficulty={props.difficulty || "medium"}>
-          {props.difficulty}
-        </DifficultyBadge>
         {props.isAttackingFlag && (
           <Typography variant="body2" sx={{ marginTop: "10px" }}>
             Attacking flag: {props.correctAnswers}/2 correct answers
@@ -112,7 +112,7 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
         )}
         {props.showExplanation && (
           <>
-            <Typography variant="h6" color={props.correct ? "success" : "error"}>
+            <Typography variant="h6" color={props.correct ? "green" : "red"}>
               {props.correct ? "Correct!" : "Incorrect!"}
             </Typography>
             {props.correct && <ExplanationText>{props.explanation}</ExplanationText>}

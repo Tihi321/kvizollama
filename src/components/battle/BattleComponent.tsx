@@ -13,7 +13,7 @@ import { GameBoard, Square } from "./GridPieces";
 import { checkWinCondition, createInitialBoard, moveSoldier } from "./logic";
 import { Cell, Question, Topic } from "./types";
 import { Back } from "../icons/Back";
-import { generateTopics } from "./utils";
+import { generateTopics, getDefaultColor } from "./utils";
 import {
   Container,
   Content,
@@ -202,7 +202,9 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
                 <Player
                   active={currentPlayer() === player}
                   player={player}
-                  backgroundColor={getStringValue(`kvizolamma/player${player}Color`)}
+                  backgroundColor={
+                    getStringValue(`kvizolamma/player${player}Color`) || getDefaultColor(player)
+                  }
                 >
                   <div>Player {player}: </div>
                   <div>

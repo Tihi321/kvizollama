@@ -1,9 +1,11 @@
 import { Component, createSignal, onMount, createMemo, Show } from "solid-js";
-import { Button, Select, MenuItem, Typography } from "@suid/material";
+import { Button, Select, MenuItem, Typography, Box } from "@suid/material";
 import { Container } from "../layout/Container";
 import { Back } from "../icons/Back";
 import { styled } from "solid-styled-components";
 import { getStringValue, saveStringValue } from "../../hooks/local";
+import { getDefaultColor } from "./utils";
+import { Trashcan } from "../icons/Trashcan";
 
 const SettingsContainer = styled.div`
   display: flex;
@@ -64,11 +66,6 @@ export const BattleSettings: Component<BattleSettingsProps> = ({ onBack }) => {
     saveStringValue(`kvizolamma/player${player}Color`, color);
   };
 
-  const getDefaultColor = (player: number): string => {
-    const colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12"];
-    return colors[player - 1] || colors[0];
-  };
-
   return (
     <Container>
       <Show when={mounted()} fallback={<div>Loading</div>}>
@@ -104,11 +101,22 @@ export const BattleSettings: Component<BattleSettingsProps> = ({ onBack }) => {
           {[1, 2, 3, 4].slice(0, numberOfPlayers() as number).map((player) => (
             <SettingRow>
               <Typography variant="body1">Player {player} Color:</Typography>
-              <ColorPicker
-                type="color"
-                value={playerColors()[player - 1]}
-                onChange={(e) => handleColorChange(player, e.target.value)}
-              />
+              <Box
+                sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "4px" }}
+              >
+                <ColorPicker
+                  type="color"
+                  value={playerColors()[player - 1]}
+                  onChange={(e) => handleColorChange(player, e.target.value)}
+                />
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => handleColorChange(player, getDefaultColor(player))}
+                >
+                  <Trashcan />
+                </Button>
+              </Box>
             </SettingRow>
           ))}
 

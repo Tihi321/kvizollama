@@ -62,6 +62,7 @@ export const LocalSelectVoice = () => {
         <Select
           value={selectedVoice()}
           onChange={(event) => {
+            saveStringValue("kvizolamma/selectedVoice", event.target.value);
             setSelectedVoice(event.target.value);
           }}
         >

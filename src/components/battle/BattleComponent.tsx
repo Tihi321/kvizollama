@@ -48,9 +48,8 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
   const [lastAnswerCorrect, setLastAnswerCorrect] = createSignal<boolean | null>(null);
   const [activePlayers, setActivePlayers] = createSignal<number[]>([1, 2]);
   const [topics, setTopics] = createSignal<Topic[]>([]);
-  const [isAttackingFlag, setIsAttackingFlag] = createSignal(false);
+  const [isAttacking, setIsAttacking] = createSignal<"none" | "flag" | "soldier">("none");
   const [answeredQuestions, setAnsweredQuestions] = createSignal<Record<string, string[]>>({});
-
   const openModal = (view: "question" | "legend" | "rules") => {
     setModalView(view);
   };
@@ -88,7 +87,13 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
       if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
         setTargetSquare({ row, col });
         setCorrectAnswers(0);
-        setIsAttackingFlag(board()[row][col].flag !== null);
+        if (board()[row][col].flag !== null) {
+          setIsAttacking("flag");
+        } else if (board()[row][col].soldier !== null) {
+          setIsAttacking("soldier");
+        } else {
+          setIsAttacking("none");
+        }
         openQuestion();
       }
     } else {
@@ -136,33 +141,31 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
 
     if (isCorrect) {
       setCorrectAnswers((count) => count + 1);
-      const requiredCorrectAnswers = isAttackingFlag() ? 2 : 1;
-
-      if (correctAnswers() === requiredCorrectAnswers) {
-        setTimeout(() => {
-          const newBoard = moveSoldier(board(), selectedSquare()!, targetSquare()!);
-          setBoard(newBoard);
-          closeModal();
-          if (checkWinCondition(newBoard, currentPlayer(), activePlayers(), boardSize())) {
-            alert(`Player ${currentPlayer()} wins!`);
-            initializeBoard();
-          } else {
-            nextPlayer();
-          }
-          setSelectedSquare(null);
-          setTargetSquare(null);
-        }, 3000);
-      } else {
-        setTimeout(openQuestion, 3000);
-      }
     } else {
-      setLastAnswerCorrect(false);
-      setShowExplanation(true);
       setTimeout(() => {
         nextPlayer();
         closeModal();
-      }, 3000);
+      }, 1000);
     }
+  };
+
+  const openNextQuestion = () => {
+    openQuestion();
+  };
+
+  const handleFinish = () => {
+    const newBoard = moveSoldier(board(), selectedSquare()!, targetSquare()!);
+    setBoard(newBoard);
+    closeModal();
+    if (checkWinCondition(newBoard, currentPlayer(), activePlayers(), boardSize())) {
+      alert(`Player ${currentPlayer()} wins!`);
+      initializeBoard();
+    } else {
+      nextPlayer();
+    }
+    setSelectedSquare(null);
+    setTargetSquare(null);
+    setIsAttacking("none");
   };
 
   const nextPlayer = () => {
@@ -246,6 +249,7 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
             nextPlayer();
             closeModal();
           }}
+          onFinish={handleFinish}
           topic={currentQuestion()?.topic}
           difficulty={currentQuestion()?.difficulty}
           question={currentQuestion()?.question}
@@ -254,8 +258,9 @@ export const BattleComponent: Component<BattleComponentProps> = (props) => {
           correct={lastAnswerCorrect()}
           showExplanation={showExplanation()}
           onAnswerSelect={checkAnswer}
-          isAttackingFlag={isAttackingFlag()}
+          isAttacking={isAttacking()}
           correctAnswers={correctAnswers()}
+          onNextQuestion={openNextQuestion}
         />
       </Modal>
 

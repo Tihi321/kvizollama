@@ -29,8 +29,10 @@ interface BattleQuestionProps {
   showExplanation?: boolean;
   onAnswerSelect: (answerIndex: number) => void;
   onClose: () => void;
-  isAttackingFlag: boolean;
+  isAttacking: "none" | "flag" | "soldier";
   correctAnswers: number;
+  onNextQuestion: () => void;
+  onFinish: () => void;
 }
 
 export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
@@ -87,15 +89,48 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
     }
   };
 
+  const handleClose = () => {
+    if (props.showExplanation) {
+      if (props.correct) {
+        if (props.correctAnswers === (props.isAttacking !== "none" ? 2 : 1)) {
+          // Move was successful, close and go to next player
+          props.onClose();
+        } else {
+          // Need another correct answer, open next question
+          props.onNextQuestion();
+        }
+      } else {
+        // Incorrect answer, close and go to next player
+        props.onClose();
+      }
+    } else {
+      // Question not answered yet, just close
+      props.onClose();
+    }
+  };
+
+  const handleFinish = () => {
+    props.onFinish();
+  };
+
   return (
     <ModalContent>
       <ModalTitle>
         <h2>
           {props.topic} ({getTranslation(getDifficultyTranslationString(props.difficulty || ""))})
         </h2>
-        <Button variant="contained" color="warning" onClick={props.onClose}>
-          <Close />
-        </Button>
+
+        {props.showExplanation &&
+        props.correct &&
+        props.correctAnswers === (props.isAttacking !== "none" ? 2 : 1) ? (
+          <Button variant="contained" color="primary" onClick={handleFinish}>
+            Finish
+          </Button>
+        ) : (
+          <Button variant="contained" color="warning" onClick={handleClose}>
+            <Close />
+          </Button>
+        )}
       </ModalTitle>
 
       <ModalQuestionInfo>
@@ -105,9 +140,10 @@ export const BattleQuestion: Component<BattleQuestionProps> = (props) => {
           </IconButtonStyled>
         )}
         <ModalQuestion>{props.question}</ModalQuestion>
-        {props.isAttackingFlag && (
+        {props.isAttacking !== "none" && (
           <Typography variant="body2" sx={{ marginTop: "10px" }}>
-            Attacking flag: {props.correctAnswers}/2 correct answers
+            {props.isAttacking === "flag" ? "Attacking flag" : "Attacking soldier"}:{" "}
+            {props.correctAnswers}/2 correct answers
           </Typography>
         )}
         {props.showExplanation && (

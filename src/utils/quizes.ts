@@ -76,9 +76,8 @@ export const getSelectedCombinedQuiz = async (
   const combinedQuizes = [...quizesResponse, ...fileQuizesData, ...localQuizesData] as QuizInfo[];
   const cleanedQuizes = combinedQuizes.filter((quiz) => quiz !== undefined);
   if (cleanedQuizes.length > 1) {
-    console.log("Combined Quizes:", combinedQuizes);
-    const topDifficulty = getTopDifficulty(combinedQuizes);
-    const questions = combinedQuestions(combinedQuizes);
+    const topDifficulty = getTopDifficulty(cleanedQuizes);
+    const questions = combinedQuestions(cleanedQuizes);
 
     return {
       name: "Combined Quiz",
@@ -86,6 +85,6 @@ export const getSelectedCombinedQuiz = async (
       data: questions,
     };
   } else {
-    return head(combinedQuizes) as QuizInfo;
+    return head(cleanedQuizes) as QuizInfo;
   }
 };

@@ -22,7 +22,6 @@ tauri-cli = "=2.0.0-rc.7"
 tauri = { version = "=2.0.0-rc.6", features = [] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-winapi = { version = "0.3", features = ["winuser", "wincon", "handleapi"] }
 tauri-plugin-dialog = "=2.0.0-rc.2"
 ollama-rs = "0.1.6"
 tokio = { version = "1.28.2", features = ["full"] }

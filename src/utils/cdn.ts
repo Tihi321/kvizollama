@@ -1,7 +1,7 @@
 import { head, map, flatMap, replace } from "lodash";
 import { CdnQuizInfo, QuizInfo, Topics } from "../types";
 
-const CDN_ENDPOINT = "https://cdn.tihomir-selak.from.hr/assets/api/ollama";
+const CDN_ENDPOINT = "https://cdn.tihomir-selak.from.hr/api/ollama";
 const QUIZ_ROUTE = "quiz";
 
 const AVAILABLE_QUIZES_PATH = "quizes.json";

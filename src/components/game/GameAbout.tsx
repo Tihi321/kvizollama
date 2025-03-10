@@ -19,7 +19,7 @@ export const GameAbout: Component<GameAboutProps> = ({ systemPrompt, onBack }) =
         <p>{getTranslation("about_message")}</p>
         <p>{getTranslation("about_params")}</p>
         <p>
-          ?quiz=https://cdn.tihomir-selak.from.hr/assets/api/ollama/quiz/perplexity/arts.json&title=Arts
+          ?quiz=https://cdn.tihomir-selak.from.hr/api/ollama/quiz/perplexity/arts.json&title=Arts
         </p>
 
         <Box
